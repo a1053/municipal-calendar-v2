@@ -1,6 +1,6 @@
 import requests
 
-URL = "https://ligagt.org/calendar/calendarioactual/"
+URL = "https://ligagt.org/calendario/"
 
 HEADERS_TO_TEST = [
     {
