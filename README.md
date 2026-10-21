@@ -6,21 +6,20 @@ cada 3 horas con GitHub Actions; si un partido se reprograma, se agrega o se
 cancela, el archivo `municipal.ics` se regenera y todos los calendarios
 suscritos lo reciben.
 
-## Suscribirse (una sola vez)
+## Suscribirse con un clic
 
-Reemplaza `USUARIO` y `REPO` por los tuyos. URL del calendario:
+- **Google Calendar:** [➕ Agregar a Google Calendar](https://calendar.google.com/calendar/render?cid=webcal%3A%2F%2Fraw.githubusercontent.com%2Fa1053%2Fmunicipal-calendar-v2%2Fmain%2Fmunicipal.ics)
+- **Outlook:** [➕ Agregar a Outlook](https://outlook.live.com/calendar/0/addfromweb?url=https%3A%2F%2Fraw.githubusercontent.com%2Fa1053%2Fmunicipal-calendar-v2%2Fmain%2Fmunicipal.ics&name=Municipal)
+- **iPhone / Mac:** copia `webcal://raw.githubusercontent.com/a1053/municipal-calendar-v2/main/municipal.ics`
+  y pégalo en Safari; Calendario ofrecerá suscribirse.
+
+URL directa (para cualquier otra app, como "suscribirse desde URL"):
 
 ```
-https://raw.githubusercontent.com/USUARIO/REPO/main/municipal.ics
+https://raw.githubusercontent.com/a1053/municipal-calendar-v2/main/municipal.ics
 ```
 
 El repositorio debe ser **público** para que los calendarios puedan leer la URL.
-
-| App | Cómo |
-|---|---|
-| **Google Calendar** | Otros calendarios → **+** → *Desde URL* → pega la URL. |
-| **iPhone / Mac** | Ajustes → Calendario → Cuentas → Añadir cuenta → Otro → *Añadir calendario suscrito*. O abre `webcal://raw.githubusercontent.com/USUARIO/REPO/main/municipal.ics`. |
-| **Outlook** | Agregar calendario → *Suscribirse desde la web*. |
 
 > Importa la URL como **suscripción**, no subiendo el archivo: solo así se
 > actualiza. Google Calendar refresca suscripciones cada 12–24 h; Apple y
