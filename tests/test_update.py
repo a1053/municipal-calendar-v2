@@ -67,6 +67,20 @@ class CalendarTests(unittest.TestCase):
         self.assertEqual((m["home"], m["away"]), ("Xelajú MC", "Municipal"))
         self.assertEqual(m["start"], "2026-12-05T01:00:00Z")
 
+    def test_api_extraction(self):
+        api = {"events": [{
+            "id": "401879570", "date": "2026-10-21T21:00Z",
+            "competitions": [{
+                "competitors": [
+                    {"homeAway": "home", "team": {"displayName": "Deportivo Mixco"}},
+                    {"homeAway": "away", "team": {"displayName": "Municipal"}}],
+                "venue": {"fullName": "Estadio Cementos Progreso"}}]}]}
+        m = uc.matches_from_api(api, "Liga Nacional de Guatemala")["401879570"]
+        self.assertEqual((m["home"], m["away"]), ("Deportivo Mixco", "Municipal"))
+        self.assertEqual(m["start"], "2026-10-21T21:00:00Z")
+        ics = uc.build_ics(uc.merge({}, {"401879570": m}, NOW))
+        self.assertIn("LOCATION:Estadio Cementos Progreso", ics)
+
 
 if __name__ == "__main__":
     unittest.main()

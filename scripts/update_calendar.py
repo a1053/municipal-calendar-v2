@@ -27,6 +27,15 @@ DB_PATH = ROOT / "data" / "matches.json"
 ICS_PATH = ROOT / "municipal.ics"
 
 SOURCE_URL = "https://www.espn.com.gt/futbol/equipo/calendario/_/id/7258/gua.municipal"
+API_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/teams/{team}/schedule"
+# Competencias a consultar en la API de ESPN (slug -> nombre). Un slug que ESPN
+# no reconozca (404) se omite; cualquier otro error aborta la corrida para no
+# borrar partidos por un fallo temporal.
+API_LEAGUES = {
+    "gua.1": "Liga Nacional de Guatemala",
+    "concacaf.central.american.cup": "Concacaf Central American Cup",
+    "concacaf.champions": "Concacaf Champions Cup",
+}
 TEAM_ID = "7258"
 TEAM_NAME = "Municipal"
 CAL_NAME = "Municipal (Guatemala)"
@@ -49,20 +58,69 @@ STAMP = "%Y-%m-%dT%H:%M:%SZ"
 # --------------------------------------------------------------------------
 # Descarga
 # --------------------------------------------------------------------------
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+    "Accept": "application/json,text/html;q=0.9,*/*;q=0.8",
+    "Accept-Language": "es-GT,es;q=0.9,en;q=0.5",
+}
+
+
 def fetch(url: str) -> str:
     import requests
 
-    resp = requests.get(
-        url,
-        headers={
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                          "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-            "Accept-Language": "es-GT,es;q=0.9,en;q=0.5",
-        },
-        timeout=30,
-    )
+    resp = requests.get(url, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     return resp.text
+
+
+def fetch_api(slug: str):
+    """Devuelve el JSON del calendario de una competencia, o None si ESPN no la conoce."""
+    import requests
+
+    resp = requests.get(API_URL.format(slug=slug, team=TEAM_ID), headers=HEADERS, timeout=30)
+    if resp.status_code == 404:
+        return None
+    resp.raise_for_status()
+    return resp.json()
+
+
+# --------------------------------------------------------------------------
+# Extracción 0: API JSON de ESPN (fuente principal)
+# --------------------------------------------------------------------------
+def matches_from_api(obj: dict, competition: str) -> dict:
+    out: dict[str, dict] = {}
+    for ev in (obj or {}).get("events", []):
+        gid = str(ev.get("id", ""))
+        comps = ev.get("competitions") or []
+        if not gid or not comps:
+            continue
+        comp = comps[0]
+        when = ev.get("date") or comp.get("date")
+        if not isinstance(when, str) or not ISO_RE.match(when):
+            continue
+        home = away = None
+        for c in comp.get("competitors", []):
+            team = c.get("team") or {}
+            name = team.get("displayName") or team.get("name")
+            if c.get("homeAway") == "home":
+                home = name
+            elif c.get("homeAway") == "away":
+                away = name
+        if not home or not away:
+            continue
+        venue = (comp.get("venue") or {}).get("fullName") or ""
+        out[gid] = {
+            "id": gid,
+            "start": _to_utc(when).strftime(STAMP),
+            "all_day": False,
+            "home": home,
+            "away": away,
+            "competition": competition,
+            "venue": venue,
+            "url": f"https://www.espn.com.gt/futbol/partido/_/juegoId/{gid}",
+        }
+    return out
 
 
 # --------------------------------------------------------------------------
@@ -231,7 +289,7 @@ def parse_matches(html: str) -> tuple[dict, str]:
 # --------------------------------------------------------------------------
 # Base de datos (data/matches.json) y mezcla
 # --------------------------------------------------------------------------
-TRACKED = ("start", "all_day", "home", "away", "competition")
+TRACKED = ("start", "all_day", "home", "away", "competition", "venue")
 
 
 def load_db() -> dict:
@@ -260,7 +318,7 @@ def merge(old: dict, new: dict, now: datetime) -> dict:
     stamp = now.strftime(STAMP)
     for mid, m in new.items():
         prev = old.get(mid)
-        if prev and all(prev.get(k) == m.get(k) for k in TRACKED):
+        if prev and all((prev.get(k) or "") == (m.get(k) or "") for k in TRACKED):
             result[mid] = prev
         else:
             m = dict(m)
@@ -337,6 +395,7 @@ def build_ics(db: dict) -> str:
                       f"DTEND:{s + MATCH_DURATION:%Y%m%dT%H%M%SZ}"]
         lines += [
             f"SUMMARY:{_esc(title)}",
+            *([f"LOCATION:{_esc(m['venue'])}"] if m.get("venue") else []),
             f"DESCRIPTION:{_esc(chr(10).join(desc))}",
             f"URL:{m['url']}",
             "STATUS:CONFIRMED",
@@ -365,22 +424,48 @@ def main(argv=None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="mostrar partidos sin escribir")
     args = ap.parse_args(argv)
 
-    try:
-        html = (Path(args.from_file).read_text(encoding="utf-8")
-                if args.from_file else fetch(SOURCE_URL))
-    except Exception as exc:  # noqa: BLE001
-        status = getattr(getattr(exc, "response", None), "status_code", "-")
-        _annotate(f"No se pudo descargar ESPN: {type(exc).__name__} (HTTP {status}): {str(exc)[:200]}")
-        return 1
-    found, how = parse_matches(html)
-    print(f"Partidos extraídos: {len(found)} (método: {how})")
+    found: dict[str, dict] = {}
+    notes: list[str] = []
+    how = "api"
+
+    if args.from_file:
+        found, how = parse_matches(Path(args.from_file).read_text(encoding="utf-8"))
+    else:
+        for slug, name in API_LEAGUES.items():
+            try:
+                data = fetch_api(slug)
+            except Exception as exc:  # noqa: BLE001
+                status = getattr(getattr(exc, "response", None), "status_code", "-")
+                _annotate(f"API de ESPN falló para {slug}: {type(exc).__name__} (HTTP {status}); "
+                          "se aborta para no borrar partidos. " + str(exc)[:160])
+                return 1
+            if data is None:
+                notes.append(f"{slug}: no existe en ESPN")
+                continue
+            part = matches_from_api(data, name)
+            notes.append(f"{slug}: {len(part)}")
+            found.update(part)
+
+        if not found:  # respaldo: página HTML
+            try:
+                html = fetch(SOURCE_URL)
+            except Exception as exc:  # noqa: BLE001
+                status = getattr(getattr(exc, "response", None), "status_code", "-")
+                _annotate(f"Sin datos de la API ({'; '.join(notes)}) y falló la página: "
+                          f"{type(exc).__name__} (HTTP {status})")
+                return 1
+            found, how = parse_matches(html)
+            if not found:
+                _annotate(
+                    f"No se extrajo ningún partido; no se modifica nada. API: {'; '.join(notes)}. "
+                    f"Página: bytes={len(html)}, filas_tr={html.count('<tr')}, "
+                    f"juegoId={html.count('juegoId')}, fitt={'__espnfitt__' in html}"
+                )
+                return 1
+
+    print(f"Partidos extraídos: {len(found)} (método: {how}) {'; '.join(notes)}")
     if not found:
-        _annotate(
-            "No se extrajo ningún partido; no se modifica nada. "
-            f"Diagnóstico: bytes={len(html)}, filas_tr={html.count('<tr')}, "
-            f"juegoId={html.count('juegoId')}, fitt={'__espnfitt__' in html}, "
-            f"inicio={re.sub(r'\\s+', ' ', html[:160])!r}"
-        )
+        _annotate("No se extrajo ningún partido; no se modifica nada.")
         return 1
 
     now = datetime.now(UTC).replace(microsecond=0)
