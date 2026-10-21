@@ -29,7 +29,7 @@ El repositorio debe ser **público** para que los calendarios puedan leer la URL
 ## Cómo funciona
 
 ```
-ESPN ──► scripts/update_calendar.py ──► data/matches.json ──► municipal.ics
+API de ESPN ──► scripts/update_calendar.py ──► data/matches.json ──► municipal.ics
          (GitHub Actions, cada 3 h)      (base de datos)       (lo que suscribes)
 ```
 
@@ -44,19 +44,22 @@ ESPN ──► scripts/update_calendar.py ──► data/matches.json ──► 
 
 ## Puesta en marcha
 
-1. Crea un repositorio **público** en GitHub y sube estos archivos.
-2. *Settings → Actions → General → Workflow permissions* → **Read and write permissions**.
-3. Pestaña **Actions** → *Actualizar calendario de Municipal* → **Run workflow**
-   para la primera corrida real y confirma que termina en verde.
+El repositorio ya está configurado: el workflow corre solo cada 3 horas y
+cuando cambias algo en `scripts/`. Para forzar una actualización: pestaña
+**Actions** → *Actualizar calendario de Municipal* → **Run workflow**.
+Si alguna vez falla al hacer push, revisa *Settings → Actions → General →
+Workflow permissions* y activa **Read and write permissions**.
 
 ## Notas importantes
 
 - **Local vs. visitante:** se toma el orden de ESPN (local primero). El título
   del evento es `Local vs Visitante`.
-- **Horas:** si ESPN entrega el JSON embebido, se usa su fecha en UTC. Si usa el
-  respaldo HTML, se asume que las horas de la tabla están en hora de Guatemala
-  (`SOURCE_TZ` en el script). Compara el primer partido con ESPN tras la primera
-  corrida.
+- **Fuente:** se usa la API JSON de ESPN (partidos jugados y por jugar de la
+  Liga Nacional, Central American Cup y Champions Cup), que entrega fechas en
+  UTC y la sede. La página HTML de ESPN queda solo como respaldo, porque ESPN
+  la devuelve vacía a los servidores de GitHub.
+- Si ESPN falla, el workflow termina en rojo con el motivo en *Annotations* y
+  no modifica el calendario.
 - **Duración:** se asignan 2 h por partido (`MATCH_DURATION`). ESPN no publica fin.
 - **Inactividad:** GitHub desactiva los workflows programados tras 60 días sin
   actividad en el repo. Mientras haya partidos, el bot hace commits y se mantiene
