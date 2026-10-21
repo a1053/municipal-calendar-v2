@@ -1,56 +1,44 @@
 import requests
 
-URL = "https://ligagt.org/calendario/"
-
-HEADERS_TO_TEST = [
-    {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/131.0.0.0 Safari/537.36"
-        ),
-        "Accept": (
-            "text/html,application/xhtml+xml,"
-            "application/xml;q=0.9,*/*;q=0.8"
-        ),
-        "Accept-Language": "es-GT,es;q=0.9,en;q=0.8",
-    },
-    {
-        "User-Agent": "MunicipalCalendarV2/1.0",
-        "Accept": "text/html,*/*",
-    },
+# Liga Bantrab is the sole source of truth. Check both the public calendar
+# page and the public SportsPress REST endpoint; this script only diagnoses
+# access and never alters the database or publishes an ICS.
+URLS = [
+    "https://ligagt.org/calendario/",
+    "https://ligagt.org/wp-json/sportspress/v2/events?per_page=5&page=1",
+    "https://ligagt.org/wp-json/sportspress/v2/calendars?per_page=5&page=1",
 ]
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; MunicipalCalendarV2/1.0)",
+    "Accept": "application/json,text/html;q=0.9,*/*;q=0.8",
+    "Accept-Language": "es-GT,es;q=0.9,en;q=0.8",
+}
 
 
 def main():
-    for number, headers in enumerate(HEADERS_TO_TEST, start=1):
-        print(f"\nPrueba {number}")
-
+    failed = []
+    for url in URLS:
+        print(f"\nURL: {url}")
         try:
-            response = requests.get(
-                URL,
-                headers=headers,
-                timeout=30,
-            )
-
+            response = requests.get(url, headers=HEADERS, timeout=25)
             print("HTTP:", response.status_code)
-            print("Content-Type:", response.headers.get("Content-Type"))
-            print("Tamaño:", len(response.content), "bytes")
-            print("URL final:", response.url)
-            print("Inicio de respuesta:")
-            print(response.text[:300].replace("\n", " "))
-
-            if response.status_code == 200:
-                print("\nLa página respondió correctamente.")
-                return
-
+            print("Content-Type:", response.headers.get("Content-Type", ""))
+            print("Bytes:", len(response.content))
+            print("Preview:", response.text[:220].replace("\n", " "))
+            if response.status_code != 200:
+                failed.append((url, response.status_code))
         except requests.RequestException as exc:
-            print("Error de conexión:", str(exc))
+            print("Error:", exc)
+            failed.append((url, str(exc)))
 
-    raise SystemExit(
-        "\nNo fue posible obtener la página desde GitHub Actions. "
-        "No se modificó la base de datos."
-    )
+    if failed:
+        print("\nRESULTADO: No todos los endpoints son accesibles desde este entorno.")
+        print("No se modificó la base de datos y no se debe generar/publicar el ICS automáticamente.")
+        for url, reason in failed:
+            print(f"- {url}: {reason}")
+        raise SystemExit(1)
+
+    print("\nRESULTADO: Los endpoints respondieron HTTP 200. Esto confirma acceso, no que la extracción esté validada.")
 
 
 if __name__ == "__main__":
