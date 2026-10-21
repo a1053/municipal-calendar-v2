@@ -214,5 +214,101 @@
     "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879584",
     "seq": 0,
     "updated": "2026-10-21T05:44:18Z"
+  },
+  "401879570": {
+    "id": "401879570",
+    "start": "2026-10-21T21:00:00Z",
+    "all_day": false,
+    "home": "Deportivo Mixco",
+    "away": "Municipal",
+    "competition": "Liga Nacional de Guatemala",
+    "venue": "Estadio Santo Domingo de Guzmán",
+    "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879570",
+    "seq": 0,
+    "updated": "2026-10-21T05:45:43Z"
+  },
+  "401879588": {
+    "id": "401879588",
+    "start": "2026-10-24T20:00:00Z",
+    "all_day": false,
+    "home": "Xelajú MC",
+    "away": "Municipal",
+    "competition": "Liga Nacional de Guatemala",
+    "venue": "Estadio Mario Camposeco",
+    "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879588",
+    "seq": 0,
+    "updated": "2026-10-21T05:45:43Z"
+  },
+  "401879597": {
+    "id": "401879597",
+    "start": "2026-10-29T02:00:00Z",
+    "all_day": false,
+    "home": "Municipal",
+    "away": "Comunicaciones",
+    "competition": "Liga Nacional de Guatemala",
+    "venue": "Estadio El Trébol",
+    "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879597",
+    "seq": 0,
+    "updated": "2026-10-21T05:45:43Z"
+  },
+  "401879640": {
+    "id": "401879640",
+    "start": "2026-11-01T21:00:00Z",
+    "all_day": false,
+    "home": "Deportivo San Pedro",
+    "away": "Municipal",
+    "competition": "Liga Nacional de Guatemala",
+    "venue": "Estadio Municipal de San Pedro Sacatepéquez",
+    "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879640",
+    "seq": 0,
+    "updated": "2026-10-21T05:45:43Z"
+  },
+  "401879605": {
+    "id": "401879605",
+    "start": "2026-11-07T23:00:00Z",
+    "all_day": false,
+    "home": "Municipal",
+    "away": "Aurora FC",
+    "competition": "Liga Nacional de Guatemala",
+    "venue": "Estadio El Trébol",
+    "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879605",
+    "seq": 0,
+    "updated": "2026-10-21T05:45:43Z"
+  },
+  "401879609": {
+    "id": "401879609",
+    "start": "2026-11-15T01:00:00Z",
+    "all_day": false,
+    "home": "CD Malacateco",
+    "away": "Municipal",
+    "competition": "Liga Nacional de Guatemala",
+    "venue": "Estadio Municipal Santa Lucía",
+    "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879609",
+    "seq": 0,
+    "updated": "2026-10-21T05:45:43Z"
+  },
+  "401879616": {
+    "id": "401879616",
+    "start": "2026-11-22T23:05:00Z",
+    "all_day": false,
+    "home": "Municipal",
+    "away": "Antigua GFC",
+    "competition": "Liga Nacional de Guatemala",
+    "venue": "Estadio El Trébol",
+    "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879616",
+    "seq": 0,
+    "updated": "2026-10-21T05:45:43Z"
+  },
+  "401879619": {
+    "id": "401879619",
+    "start": "2026-11-28T21:00:00Z",
+    "all_day": false,
+    "home": "Suchitepequez",
+    "away": "Municipal",
+    "competition": "Liga Nacional de Guatemala",
+    "venue": "Estadio Carlos Salazar Hijo",
+    "url": "https://www.espn.com.gt/futbol/partido/_/juegoId/401879619",
+    "seq": 0,
+    "updated": "2026-10-21T05:45:43Z"
   }
 }

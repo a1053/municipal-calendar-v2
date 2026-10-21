@@ -351,4 +351,156 @@ DESCRIPTION:Municipal vs CD Guastatoya
 TRIGGER:-PT1H
 END:VALARM
 END:VEVENT
+BEGIN:VEVENT
+UID:espn-401879570@municipal-calendar
+DTSTAMP:20261021T054543Z
+SEQUENCE:0
+DTSTART:20261021T210000Z
+DTEND:20261021T230000Z
+SUMMARY:Deportivo Mixco vs Municipal
+LOCATION:Estadio Santo Domingo de Guzmán
+DESCRIPTION:Competencia: Liga Nacional de Guatemala\nDetalle del partido: h
+ ttps://www.espn.com.gt/futbol/partido/_/juegoId/401879570\nFuente: ESPN
+URL:https://www.espn.com.gt/futbol/partido/_/juegoId/401879570
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Deportivo Mixco vs Municipal
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:espn-401879588@municipal-calendar
+DTSTAMP:20261021T054543Z
+SEQUENCE:0
+DTSTART:20261024T200000Z
+DTEND:20261024T220000Z
+SUMMARY:Xelajú MC vs Municipal
+LOCATION:Estadio Mario Camposeco
+DESCRIPTION:Competencia: Liga Nacional de Guatemala\nDetalle del partido: h
+ ttps://www.espn.com.gt/futbol/partido/_/juegoId/401879588\nFuente: ESPN
+URL:https://www.espn.com.gt/futbol/partido/_/juegoId/401879588
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Xelajú MC vs Municipal
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:espn-401879597@municipal-calendar
+DTSTAMP:20261021T054543Z
+SEQUENCE:0
+DTSTART:20261029T020000Z
+DTEND:20261029T040000Z
+SUMMARY:Municipal vs Comunicaciones
+LOCATION:Estadio El Trébol
+DESCRIPTION:Competencia: Liga Nacional de Guatemala\nDetalle del partido: h
+ ttps://www.espn.com.gt/futbol/partido/_/juegoId/401879597\nFuente: ESPN
+URL:https://www.espn.com.gt/futbol/partido/_/juegoId/401879597
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Municipal vs Comunicaciones
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:espn-401879640@municipal-calendar
+DTSTAMP:20261021T054543Z
+SEQUENCE:0
+DTSTART:20261101T210000Z
+DTEND:20261101T230000Z
+SUMMARY:Deportivo San Pedro vs Municipal
+LOCATION:Estadio Municipal de San Pedro Sacatepéquez
+DESCRIPTION:Competencia: Liga Nacional de Guatemala\nDetalle del partido: h
+ ttps://www.espn.com.gt/futbol/partido/_/juegoId/401879640\nFuente: ESPN
+URL:https://www.espn.com.gt/futbol/partido/_/juegoId/401879640
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Deportivo San Pedro vs Municipal
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:espn-401879605@municipal-calendar
+DTSTAMP:20261021T054543Z
+SEQUENCE:0
+DTSTART:20261107T230000Z
+DTEND:20261108T010000Z
+SUMMARY:Municipal vs Aurora FC
+LOCATION:Estadio El Trébol
+DESCRIPTION:Competencia: Liga Nacional de Guatemala\nDetalle del partido: h
+ ttps://www.espn.com.gt/futbol/partido/_/juegoId/401879605\nFuente: ESPN
+URL:https://www.espn.com.gt/futbol/partido/_/juegoId/401879605
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Municipal vs Aurora FC
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:espn-401879609@municipal-calendar
+DTSTAMP:20261021T054543Z
+SEQUENCE:0
+DTSTART:20261115T010000Z
+DTEND:20261115T030000Z
+SUMMARY:CD Malacateco vs Municipal
+LOCATION:Estadio Municipal Santa Lucía
+DESCRIPTION:Competencia: Liga Nacional de Guatemala\nDetalle del partido: h
+ ttps://www.espn.com.gt/futbol/partido/_/juegoId/401879609\nFuente: ESPN
+URL:https://www.espn.com.gt/futbol/partido/_/juegoId/401879609
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:CD Malacateco vs Municipal
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:espn-401879616@municipal-calendar
+DTSTAMP:20261021T054543Z
+SEQUENCE:0
+DTSTART:20261122T230500Z
+DTEND:20261123T010500Z
+SUMMARY:Municipal vs Antigua GFC
+LOCATION:Estadio El Trébol
+DESCRIPTION:Competencia: Liga Nacional de Guatemala\nDetalle del partido: h
+ ttps://www.espn.com.gt/futbol/partido/_/juegoId/401879616\nFuente: ESPN
+URL:https://www.espn.com.gt/futbol/partido/_/juegoId/401879616
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Municipal vs Antigua GFC
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:espn-401879619@municipal-calendar
+DTSTAMP:20261021T054543Z
+SEQUENCE:0
+DTSTART:20261128T210000Z
+DTEND:20261128T230000Z
+SUMMARY:Suchitepequez vs Municipal
+LOCATION:Estadio Carlos Salazar Hijo
+DESCRIPTION:Competencia: Liga Nacional de Guatemala\nDetalle del partido: h
+ ttps://www.espn.com.gt/futbol/partido/_/juegoId/401879619\nFuente: ESPN
+URL:https://www.espn.com.gt/futbol/partido/_/juegoId/401879619
+STATUS:CONFIRMED
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Suchitepequez vs Municipal
+TRIGGER:-PT1H
+END:VALARM
+END:VEVENT
 END:VCALENDAR
