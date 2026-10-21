@@ -74,11 +74,16 @@ def fetch(url: str) -> str:
     return resp.text
 
 
-def fetch_api(slug: str):
-    """Devuelve el JSON del calendario de una competencia, o None si ESPN no la conoce."""
+def fetch_api(slug: str, fixtures: bool = False):
+    """JSON del calendario de una competencia, o None si ESPN no la conoce.
+
+    Sin parámetros ESPN entrega los partidos ya jugados; con fixture=true, los
+    que faltan por jugar. Hacen falta las dos consultas.
+    """
     import requests
 
-    resp = requests.get(API_URL.format(slug=slug, team=TEAM_ID), headers=HEADERS, timeout=30)
+    url = API_URL.format(slug=slug, team=TEAM_ID) + ("?fixture=true" if fixtures else "")
+    resp = requests.get(url, headers=HEADERS, timeout=30)
     if resp.status_code == 404:
         return None
     resp.raise_for_status()
@@ -432,19 +437,24 @@ def main(argv=None) -> int:
         found, how = parse_matches(Path(args.from_file).read_text(encoding="utf-8"))
     else:
         for slug, name in API_LEAGUES.items():
-            try:
-                data = fetch_api(slug)
-            except Exception as exc:  # noqa: BLE001
-                status = getattr(getattr(exc, "response", None), "status_code", "-")
-                _annotate(f"API de ESPN falló para {slug}: {type(exc).__name__} (HTTP {status}); "
-                          "se aborta para no borrar partidos. " + str(exc)[:160])
-                return 1
-            if data is None:
-                notes.append(f"{slug}: no existe en ESPN")
-                continue
-            part = matches_from_api(data, name)
-            notes.append(f"{slug}: {len(part)}")
-            found.update(part)
+            counts = []
+            for fixtures in (False, True):  # jugados y por jugar
+                try:
+                    data = fetch_api(slug, fixtures)
+                except Exception as exc:  # noqa: BLE001
+                    status = getattr(getattr(exc, "response", None), "status_code", "-")
+                    _annotate(f"API de ESPN falló para {slug}"
+                              f"{' (por jugar)' if fixtures else ''}: {type(exc).__name__} "
+                              f"(HTTP {status}); se aborta para no borrar partidos. "
+                              + str(exc)[:160])
+                    return 1
+                if data is None:
+                    counts.append("no existe")
+                    break
+                part = matches_from_api(data, name)
+                counts.append(str(len(part)))
+                found.update(part)
+            notes.append(f"{slug}: {'/'.join(counts)}")
 
         if not found:  # respaldo: página HTML
             try:
