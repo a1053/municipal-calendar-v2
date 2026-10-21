@@ -353,17 +353,34 @@ def build_ics(db: dict) -> str:
 
 
 # --------------------------------------------------------------------------
+def _annotate(message: str) -> None:
+    """Error visible en el resumen de GitHub Actions y en stderr."""
+    print(f"::error title=Fallo al leer ESPN::{message}")
+    print(message, file=sys.stderr)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--from-file", help="leer HTML de un archivo en vez de descargar")
     ap.add_argument("--dry-run", action="store_true", help="mostrar partidos sin escribir")
     args = ap.parse_args(argv)
 
-    html = Path(args.from_file).read_text(encoding="utf-8") if args.from_file else fetch(SOURCE_URL)
+    try:
+        html = (Path(args.from_file).read_text(encoding="utf-8")
+                if args.from_file else fetch(SOURCE_URL))
+    except Exception as exc:  # noqa: BLE001
+        status = getattr(getattr(exc, "response", None), "status_code", "-")
+        _annotate(f"No se pudo descargar ESPN: {type(exc).__name__} (HTTP {status}): {str(exc)[:200]}")
+        return 1
     found, how = parse_matches(html)
     print(f"Partidos extraídos: {len(found)} (método: {how})")
     if not found:
-        print("ERROR: no se extrajo ningún partido; no se modifica nada.", file=sys.stderr)
+        _annotate(
+            "No se extrajo ningún partido; no se modifica nada. "
+            f"Diagnóstico: bytes={len(html)}, filas_tr={html.count('<tr')}, "
+            f"juegoId={html.count('juegoId')}, fitt={'__espnfitt__' in html}, "
+            f"inicio={re.sub(r'\\s+', ' ', html[:160])!r}"
+        )
         return 1
 
     now = datetime.now(UTC).replace(microsecond=0)
