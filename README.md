@@ -66,6 +66,33 @@ Workflow permissions* y activa **Read and write permissions**.
 - Uso personal: respeta los términos de uso de ESPN y no aumentes la frecuencia
   más de lo necesario.
 
+## 🌐 Sitio web (GitHub Pages)
+
+Además del calendario, este repo publica un sitio con el marcador del próximo
+partido (o el que está en vivo), partidos y resultados, la tabla de la Liga
+Bantrab con Municipal resaltado, noticias y redes (X e Instagram).
+
+```
+ESPN + Google Noticias ──► scripts/build_site_data.py ──► site/ ──► GitHub Pages
+          (workflow "Publicar sitio de Municipal", cada 15 min)
+```
+
+- `site/` es el sitio estático (HTML, CSS y JS, sin pasos de compilación).
+  `site/config.json` guarda las cuentas de X e Instagram y los nombres de las
+  competencias.
+- Los datos (`data/*.json` dentro del sitio publicado) se generan en cada
+  corrida y **no se guardan en el repo**, así el historial no se llena de commits.
+- Si ESPN falla al leer partidos, no se publica nada y queda el sitio anterior.
+  Si falla la tabla o las noticias, se reutiliza la última versión publicada.
+- El calendario `.ics` también se sirve desde el sitio (`/municipal.ics`).
+
+**Activar una sola vez:** *Settings → Pages → Build and deployment → Source:
+GitHub Actions*. Luego corre el workflow desde la pestaña **Actions**.
+El sitio queda en `https://a1053.github.io/municipal-calendar-v2/`.
+
+Para verlo en tu computadora: `python scripts/build_site_data.py` y
+`python -m http.server -d site`.
+
 ## Desarrollo
 
 ```bash
