@@ -112,12 +112,11 @@ a { color: inherit; }
   font: 800 2.1rem/1 var(--font-display); letter-spacing: .01em;
 }
 .block h3 { margin: 22px 0 6px; font-size: 1rem; font-weight: 700; color: var(--muted); }
+.col { display: contents; }
+.a-partidos { order: 1; } .a-tabla { order: 2; } .a-jugadores { order: 3; } .a-noticias { order: 4; } .a-redes { order: 5; }
 @media (min-width: 960px) {
   .layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
-  .a-partidos { grid-column: 1; grid-row: 1; }
-  .a-tabla { grid-column: 2; grid-row: 1; }
-  .a-noticias { grid-column: 1; grid-row: 2; }
-  .a-redes { grid-column: 2; grid-row: 2; }
+  .col { display: block; }
 }
 
 /* Forma reciente */
@@ -210,8 +209,10 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .noscript { padding: 16px; margin: 0; background: var(--led); color: #000; text-align: center; }
 
 @media (max-width: 440px) {
-  .brand { font-size: 1.4rem; }
-  .top nav a { padding: 8px 6px; font-size: .85rem; }
+  .brand { font-size: 1.1rem; }
+  .top { gap: 8px; }
+  .top nav { gap: 0; }
+  .top nav a { padding: 8px 4px; font-size: .78rem; }
 }
 @media (max-width: 380px) {
   .badge { width: 46px; height: 46px; }
@@ -221,3 +222,63 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   html { scroll-behavior: auto; }
   .status.live::before { animation: none; }
 }
+
+/* Jugadores */
+.pl { display: flex; align-items: baseline; gap: 8px; min-width: 9rem; }
+.jersey { display: inline-block; min-width: 1.6rem; text-align: right; font: 800 1rem/1 var(--font-display); color: var(--muted); }
+.pname { font-weight: 500; }
+.ppos { font-size: .75rem; color: var(--muted); }
+.std.players caption { padding-bottom: 8px; }
+.std.players th:first-child, .std.players td:first-child { text-align: left; width: auto; padding-left: 6px; padding-right: 6px; }
+.std.players th:nth-child(2), .std.players td:nth-child(2) { text-align: right; }
+.std.players .pname { white-space: nowrap; }
+.btn-ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); cursor: pointer; font: 700 1rem var(--font-body); }
+.btn-ghost:hover { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+.board-link { margin: 12px 0 0; text-align: center; }
+.board-link a { color: var(--led); font-weight: 700; text-underline-offset: 3px; }
+
+/* Página del partido */
+.match-view { padding-bottom: 48px; }
+.back { display: inline-block; margin: 14px var(--gutter); font-weight: 700; color: var(--rojo-texto); text-underline-offset: 3px; }
+.mv-body { max-width: 760px; margin: 0 auto; padding: 8px var(--gutter) 0; }
+.pad { padding: 20px var(--gutter); }
+.mv-sec { padding-top: 26px; }
+.mv-sec > h2 { margin: 0 0 12px; padding-top: 10px; border-top: 6px solid var(--rojo); font: 800 1.8rem/1 var(--font-display); }
+.mv-sec h3 { margin: 18px 0 6px; font-size: 1rem; font-weight: 700; color: var(--muted); }
+.plain { list-style: none; margin: 0; padding: 0; }
+.plain li { padding: 5px 0; display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--line); }
+.plain a { color: var(--rojo-texto); font-weight: 500; }
+.rival { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.rival .badge { width: 44px; height: 44px; background: var(--surface); color: var(--ink); }
+
+/* Cronología */
+.tl { list-style: none; margin: 0; padding: 0; }
+.ev { display: grid; grid-template-columns: minmax(0, 1fr) 3.6rem minmax(0, 1fr); gap: 8px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.ev-min { text-align: center; font: 800 1.05rem/1.2 var(--font-display); color: var(--muted); }
+.ev-side.home { text-align: right; }
+.ev-body { display: flex; flex-direction: column; gap: 1px; }
+.ev-side.home .ev-body { align-items: flex-end; }
+.ev-kind { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.k-goal .ev-kind, .k-own_goal .ev-kind { color: var(--rojo-texto); }
+.k-red .ev-kind { color: var(--loss); }
+.ev-who { font-weight: 500; }
+
+/* Estadísticas */
+.stats { display: grid; gap: 14px; }
+.stat-head { display: flex; justify-content: space-between; font-weight: 700; }
+.stat { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr) 3.4rem; gap: 10px; align-items: center; }
+.sv { font: 800 1.15rem/1 var(--font-display); }
+.stat .sv:last-child { text-align: right; }
+.sbar-wrap { display: grid; gap: 4px; text-align: center; }
+.sl { font-size: .85rem; color: var(--muted); }
+.sbar { display: flex; gap: 3px; height: 8px; }
+.sbar span { display: block; height: 100%; border-radius: 2px; min-width: 2px; }
+.sb-me { background: var(--rojo); }
+.sb-other { background: var(--muted); }
+
+/* Alineaciones */
+.lineups { display: grid; gap: 22px; }
+@media (min-width: 600px) { .lineups { grid-template-columns: 1fr 1fr; gap: 32px; } }
+.lu h3 { margin-top: 0; color: var(--ink); }
+.lu details { margin-top: 10px; }
+.lu summary { cursor: pointer; font-weight: 700; color: var(--muted); padding: 6px 0; }

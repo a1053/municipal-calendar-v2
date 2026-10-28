@@ -52,7 +52,9 @@ jobs:
           mkdir -p _site
           cp -r site/. _site/
           cp municipal.ics _site/municipal.ics
-          python scripts/build_site_data.py --out _site/data --previous _prev
+          python scripts/build_site_data.py --out _site/data --previous _prev \
+            --site-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" \
+            --index _site/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

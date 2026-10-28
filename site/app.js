@@ -3,9 +3,11 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
+  const BASE_TITLE = document.title;
   let config = {};
-  let data = { matches: null, standings: null, news: null, meta: null };
+  let data = { matches: null, standings: null, news: null, meta: null, players: null };
   let newsFeed = "municipal";
+  let showAllPlayers = false;
   let timer = null;
 
   // ---------- utilidades ----------
@@ -31,6 +33,7 @@
   const fTime = (d) => fmt({ hour: "numeric", minute: "2-digit", hour12: true }).format(d).replace(/\s/g, " ");
   const compLabel = (c) => (config.competition_labels || {})[c] || c || "";
   const isMe = (side) => side.id === String(config.team_id) || side.name === config.team;
+  const RESULT = { G: "Ganó", E: "Empató", P: "Perdió" };
 
   function initials(name) {
     const words = (name || "").replace(/\b(FC|CD|GFC|MC|SC)\b/g, "").trim().split(/\s+/);
@@ -61,6 +64,8 @@
     if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`);
     return res.json();
   }
+  const chip = (r) => el("span", { class: `chip ${r}`, title: RESULT[r], text: r });
+  const matchHref = (m) => (m.detail ? `#/partido/${m.id}` : safeUrl(m.url));
 
   // ---------- partidos ----------
   const start = (m) => new Date(m.start);
@@ -85,60 +90,59 @@
     return `Faltan ${plural(mi, "minuto", "minutos")}`;
   }
 
-  function renderBoard() {
-    const box = $("board");
-    box.replaceChildren();
-    const matches = (data.matches && data.matches.matches) || [];
-    if (!matches.length) {
-      box.append(el("p", { class: "board-msg", text: "Todavía no hay partidos para mostrar." }));
-      return;
-    }
-    const { live, upcoming, results } = split(matches);
-    const focus = live[0] || upcoming[0] || results[0];
-    const next = !live[0] && upcoming[0] ? upcoming[0] : null;
-    const d = start(focus);
-    const home = focus.home, away = focus.away;
-
-    let status, center;
-    if (live[0]) {
-      status = el("p", { class: "status live", text: `En vivo ${focus.clock || focus.status || ""}`.trim() });
-      center = scoreDigits(focus);
-    } else if (next) {
-      status = el("p", { class: "status", text: "Próximo partido" });
-      center = el("div", { class: "kickoff" }, el("span", { class: "hour", text: fTime(d) }), el("span", { class: "vs", text: "contra" }));
-    } else {
-      status = el("p", { class: "status", text: "Último resultado" });
-      center = scoreDigits(focus);
-    }
-    box.append(
-      status,
-      el("div", { class: "score-row" },
-        el("div", { class: "side" }, badge(home), el("span", { class: "nm", text: home.name })),
-        center,
-        el("div", { class: "side" }, badge(away), el("span", { class: "nm", text: away.name }))),
-      el("p", { class: "where", text: [fDayLong(d), compLabel(focus.competition), focus.venue].filter(Boolean).join(", ") })
-    );
-    if (next) {
-      const cd = el("p", { class: "countdown", id: "countdown", text: countdown(next) });
-      box.append(cd);
-    }
-    if (!live[0] && !next && !upcoming.length) {
-      box.append(el("p", { class: "where", text: "No hay más partidos programados por ahora." }));
-    }
-    const last = results[0];
-    if ((live[0] || next) && last) {
-      const r = last.result;
-      box.append(el("p", { class: "last" },
-        el("span", { text: "Último resultado:" }),
-        el("strong", { text: `${last.home.name} ${last.home.score ?? "-"} - ${last.away.score ?? "-"} ${last.away.name}` }),
-        r ? el("span", { class: `chip ${r}`, title: { G: "Ganó", E: "Empató", P: "Perdió" }[r], text: r }) : null));
-    }
-    box.dataset.next = next ? next.start : "";
-  }
   function scoreDigits(m) {
     const s = (v) => (v == null ? "-" : v);
     return el("div", { class: "digits", "aria-label": `${s(m.home.score)} a ${s(m.away.score)}` },
       el("span", { text: s(m.home.score) }), el("span", { class: "sep", text: "-" }), el("span", { text: s(m.away.score) }));
+  }
+
+  // Marcador de un partido (portada y página del partido).
+  function fillBoard(box, m) {
+    const d = start(m);
+    let status, center;
+    if (m.postponed) {
+      status = el("p", { class: "status", text: "Partido aplazado" });
+      center = el("div", { class: "kickoff" }, el("span", { class: "vs", text: "contra" }));
+    } else if (m.state === "in") {
+      status = el("p", { class: "status live", text: `En vivo ${m.clock || m.status || ""}`.trim() });
+      center = scoreDigits(m);
+    } else if (m.state === "pre") {
+      status = el("p", { class: "status", text: "Próximo partido" });
+      center = el("div", { class: "kickoff" }, el("span", { class: "hour", text: fTime(d) }), el("span", { class: "vs", text: "contra" }));
+    } else {
+      status = el("p", { class: "status", text: "Resultado final" });
+      center = scoreDigits(m);
+    }
+    box.replaceChildren(status,
+      el("div", { class: "score-row" },
+        el("div", { class: "side" }, badge(m.home), el("span", { class: "nm", text: m.home.name })),
+        center,
+        el("div", { class: "side" }, badge(m.away), el("span", { class: "nm", text: m.away.name }))),
+      el("p", { class: "where", text: [fDayLong(d), compLabel(m.competition), m.venue].filter(Boolean).join(", ") }));
+  }
+
+  function renderBoard() {
+    const box = $("board");
+    const matches = (data.matches && data.matches.matches) || [];
+    if (!matches.length) {
+      box.replaceChildren(el("p", { class: "board-msg", text: "Todavía no hay partidos para mostrar." }));
+      return;
+    }
+    const { live, upcoming, results } = split(matches);
+    const focus = live[0] || upcoming[0] || results[0];
+    const next = !live[0] && upcoming[0] && upcoming[0] === focus ? focus : null;
+    fillBoard(box, focus);
+    if (next && !next.postponed) box.append(el("p", { class: "countdown", id: "countdown", text: countdown(next) }));
+    if (focus.detail) box.append(el("p", { class: "board-link" }, el("a", { href: `#/partido/${focus.id}`, text: "Ver el partido" })));
+    if (!live[0] && !upcoming.length) box.append(el("p", { class: "where", text: "No hay más partidos programados por ahora." }));
+    const last = results[0];
+    if (focus !== last && last) {
+      box.append(el("p", { class: "last" },
+        el("span", { text: "Último resultado:" }),
+        el("strong", { text: `${last.home.name} ${last.home.score ?? "-"} - ${last.away.score ?? "-"} ${last.away.name}` }),
+        last.result ? chip(last.result) : null));
+    }
+    box.dataset.next = next ? next.start : "";
   }
 
   function matchRow(m) {
@@ -149,11 +153,12 @@
       el("span", { class: "s", text: showScore && side.score != null ? side.score : "" }));
     const d = start(m);
     const meta = [compLabel(m.competition), m.venue].filter(Boolean).join(", ");
+    const internal = m.detail;
     return el("li", null,
-      el("a", { class: "m", href: safeUrl(m.url), target: "_blank", rel: "noopener" },
+      el("a", { class: "m", href: matchHref(m), target: internal ? null : "_blank", rel: internal ? null : "noopener" },
         el("div", { class: "when" }, el("span", { class: "d", text: fDay(d) }), el("span", { text: fTime(d) })),
         el("div", null, row(m.home), row(m.away), el("div", { class: "meta", text: meta })),
-        m.result ? el("span", { class: `chip ${m.result}`, title: { G: "Ganó", E: "Empató", P: "Perdió" }[m.result], text: m.result }) : el("span")));
+        m.result ? chip(m.result) : el("span")));
   }
 
   function renderMatches() {
@@ -210,6 +215,173 @@
           g.name ? el("caption", { text: g.name }) : null,
           el("thead", null, head), el("tbody", null, rows))));
     });
+  }
+
+  // ---------- jugadores ----------
+  function renderPlayers() {
+    const box = $("players");
+    box.replaceChildren();
+    const list = (data.players && data.players.players) || [];
+    if (!list.length) {
+      box.append(el("p", { class: "empty", text: "Aparecerán cuando haya alineaciones de partidos jugados." }));
+      return;
+    }
+    const shown = showAllPlayers ? list : list.slice(0, 10);
+    const v = (x) => (x ? x : "-");
+    const head = el("tr", null,
+      el("th", { scope: "col", text: "Jugador" }),
+      el("th", { scope: "col", text: "PJ", title: "Partidos jugados" }),
+      el("th", { scope: "col", text: "G", title: "Goles" }),
+      el("th", { scope: "col", text: "A", title: "Asistencias" }),
+      el("th", { scope: "col", class: "opt", text: "TA", title: "Tarjetas amarillas" }),
+      el("th", { scope: "col", class: "opt", text: "TR", title: "Tarjetas rojas" }));
+    const rows = shown.map((p) => el("tr", null,
+      el("td", null, el("span", { class: "pl" },
+        el("span", { class: "jersey", text: p.jersey || "" }),
+        el("span", { class: "pname", text: p.name }),
+        p.pos ? el("span", { class: "ppos", text: p.pos }) : null)),
+      el("td", { text: p.pj }),
+      el("td", { class: p.goals ? "pts" : null, text: v(p.goals) }),
+      el("td", { text: v(p.assists) }),
+      el("td", { class: "opt", text: v(p.yellow) }),
+      el("td", { class: "opt", text: v(p.red) })));
+    box.append(
+      el("div", { class: "tablewrap" }, el("table", { class: "std players" },
+        el("caption", { text: "Con los partidos que tienen alineación en ESPN" }),
+        el("thead", null, head), el("tbody", null, rows))));
+    if (list.length > 10) {
+      const b = el("button", { class: "btn btn-ghost", type: "button", text: showAllPlayers ? "Ver menos" : `Ver los ${list.length} jugadores` });
+      b.addEventListener("click", () => { showAllPlayers = !showAllPlayers; renderPlayers(); });
+      box.append(b);
+    }
+  }
+
+  // ---------- página del partido ----------
+  const KIND = { goal: "Gol", own_goal: "Autogol", yellow: "Amarilla", red: "Roja", sub: "Cambio" };
+
+  function section(title, ...kids) {
+    return el("section", { class: "mv-sec" }, el("h2", { text: title }), ...kids);
+  }
+
+  function rivalBlock(r) {
+    const bits = [];
+    if (r.pos) bits.push(`${r.pos}.º en la tabla`);
+    if (r.pts != null) bits.push(`${r.pts} puntos${r.pj ? ` en ${r.pj} partidos` : ""}`);
+    return section("El rival",
+      el("div", { class: "rival" }, badge({ logo: r.logo, name: r.name }),
+        el("div", null, el("strong", { text: r.name }), bits.length ? el("div", { class: "meta", text: bits.join(", ") }) : null)),
+      r.form && r.form.length ? el("p", { class: "form" }, el("span", { text: "Sus últimos partidos:" }),
+        ...r.form.map((f) => el("span", { class: `chip ${f.result}`, title: `${f.home ? "Local" : "Visitante"} contra ${f.vs}, ${f.score}`, text: f.result }))) : null,
+      r.meetings && r.meetings.length ? el("div", null, el("h3", { text: "Se enfrentaron esta temporada" }),
+        el("ul", { class: "plain" }, ...r.meetings.map((x) => el("li", null,
+          el("a", { href: `#/partido/${x.id}`, text: `${x.home} ${x.score} ${x.away}` }),
+          el("span", { class: "meta", text: `, ${fDay(new Date(x.start))}` }))))) : null);
+  }
+
+  function timeline(m, events) {
+    const items = events.filter((e) => KIND[e.kind]);
+    if (!items.length) return null;
+    const homeId = m.home.id;
+    return section("Cronología", el("ol", { class: "tl" }, ...items.map((e) => {
+      const label = e.kind === "goal" && e.penalty ? "Gol de penal" : KIND[e.kind];
+      const who = e.kind === "sub" ? e.text : e.player;
+      const body = el("div", { class: `ev-body k-${e.kind}` },
+        el("span", { class: "ev-kind", text: label }),
+        who ? el("span", { class: "ev-who", text: who }) : null,
+        e.assist ? el("span", { class: "meta", text: `Asistencia: ${e.assist}` }) : null);
+      const home = e.team_id === homeId;
+      return el("li", { class: "ev" },
+        el("div", { class: "ev-side home" }, home ? body : null),
+        el("span", { class: "ev-min", text: e.min }),
+        el("div", { class: "ev-side away" }, home ? null : body));
+    })));
+  }
+
+  function statsBlock(m, stats) {
+    if (!stats.length) return null;
+    const meHome = isMe(m.home);
+    return section("Estadísticas", el("div", { class: "stats" },
+      el("div", { class: "stat-head" }, el("span", { text: m.home.name }), el("span", { text: m.away.name })),
+      ...stats.map((s) => {
+        const total = (s.home_v || 0) + (s.away_v || 0);
+        const hp = total ? (s.home_v / total) * 100 : 50;
+        return el("div", { class: "stat" },
+          el("span", { class: "sv", text: s.home }),
+          el("div", { class: "sbar-wrap" },
+            el("span", { class: "sl", text: s.label }),
+            el("div", { class: "sbar", role: "img", "aria-label": `${s.label}: ${s.home} contra ${s.away}` },
+              el("span", { class: meHome ? "sb-me" : "sb-other", style: `width:${hp}%` }),
+              el("span", { class: meHome ? "sb-other" : "sb-me", style: `width:${100 - hp}%` }))),
+          el("span", { class: "sv", text: s.away }));
+      })));
+  }
+
+  function lineupsBlock(m, lineups) {
+    if (!lineups.length) return null;
+    const ordered = [...lineups].sort((a, b) => (a.team_id === m.home.id ? -1 : 1) - (b.team_id === m.home.id ? -1 : 1));
+    return section("Alineaciones", el("div", { class: "lineups" }, ...ordered.map((lu) => {
+      const li = (p) => el("li", null, el("span", { class: "jersey", text: p.jersey || "" }), el("span", { class: "pname", text: p.name }), p.pos ? el("span", { class: "ppos", text: p.pos }) : null);
+      const bench = lu.players.filter((p) => !p.starter);
+      return el("div", { class: "lu" },
+        el("h3", { text: lu.team + (lu.formation ? ` (${lu.formation})` : "") }),
+        el("ul", { class: "plain" }, ...lu.players.filter((p) => p.starter).map(li)),
+        bench.length ? el("details", null, el("summary", { text: `Suplentes (${bench.length})` }), el("ul", { class: "plain" }, ...bench.map(li))) : null);
+    })));
+  }
+
+  async function renderMatchView(id) {
+    const view = $("vista-partido");
+    const m = ((data.matches && data.matches.matches) || []).find((x) => x.id === id);
+    view.replaceChildren(el("a", { class: "back", href: "#partidos", text: "Volver a partidos" }));
+    if (!m) {
+      view.append(el("p", { class: "empty pad", text: "No encontramos ese partido. Puede que ya no esté en el calendario." }));
+      return;
+    }
+    document.title = `${m.home.name} ${m.state === "pre" ? "vs" : `${m.home.score ?? "-"}-${m.away.score ?? "-"}`} ${m.away.name} | ${BASE_TITLE}`;
+    const head = el("section", { class: "board" }, el("div", { class: "board-inner" }));
+    fillBoard(head.firstChild, m);
+    view.append(head);
+    const body = el("div", { class: "mv-body" });
+    view.append(body);
+
+    let detail = null;
+    try { detail = await getJson(`match/${id}`); } catch (_) { detail = null; }
+    if (!location.hash.startsWith(`#/partido/${id}`)) return; // el usuario ya se fue
+    const parts = detail ? [
+      m.state === "pre" && detail.rival ? rivalBlock(detail.rival) : null,
+      timeline(m, detail.events || []),
+      statsBlock(m, detail.stats || []),
+      lineupsBlock(m, detail.lineups || []),
+    ].filter(Boolean) : [];
+    if (parts.length) body.append(...parts);
+    else body.append(el("p", { class: "empty", text: m.state === "pre" ? "Las alineaciones y estadísticas aparecen cuando empieza el partido." : "ESPN todavía no publica el detalle de este partido." }));
+    const share = el("button", { class: "btn btn-ghost", type: "button", text: "Compartir este partido" });
+    share.addEventListener("click", async () => {
+      const url = location.href, title = document.title;
+      try {
+        if (navigator.share) await navigator.share({ title, url });
+        else { await navigator.clipboard.writeText(url); share.textContent = "Enlace copiado"; }
+      } catch (_) { /* el usuario canceló */ }
+    });
+    body.append(el("p", { class: "actions" },
+      el("a", { class: "btn", href: safeUrl(m.url), target: "_blank", rel: "noopener", text: "Ver este partido en ESPN" }), share));
+  }
+
+  function route() {
+    const hit = location.hash.match(/^#\/partido\/(\d+)/);
+    const home = $("home"), view = $("vista-partido");
+    if (!hit) {
+      const wasView = !view.hidden;
+      view.hidden = true; home.hidden = false;
+      document.title = BASE_TITLE;
+      const target = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+      if (wasView) { if (target) target.scrollIntoView(); else window.scrollTo(0, 0); }
+      return;
+    }
+    const wasHome = !home.hidden;
+    home.hidden = true; view.hidden = false;
+    if (wasHome) window.scrollTo(0, 0);
+    renderMatchView(hit[1]);
   }
 
   // ---------- noticias ----------
@@ -306,7 +478,7 @@
     if (m) c.textContent = countdown(m);
   }
   async function load() {
-    const names = ["matches", "standings", "news", "meta"];
+    const names = ["matches", "standings", "news", "meta", "players"];
     const res = await Promise.allSettled(names.map(getJson));
     names.forEach((n, i) => { if (res[i].status === "fulfilled") data[n] = res[i].value; });
     if (res[0].status === "rejected" && !data.matches) {
@@ -314,13 +486,13 @@
     } else {
       renderBoard(); renderMatches();
     }
-    renderStandings(); renderNews(); renderFooter();
+    renderStandings(); renderPlayers(); renderNews(); renderFooter();
     schedule();
   }
   function schedule() {
     clearTimeout(timer);
     const live = data.matches && data.matches.matches.some((m) => m.state === "in");
-    timer = setTimeout(load, live ? 45e3 : 180e3);
+    timer = setTimeout(async () => { await load(); if (!$("vista-partido").hidden) route(); }, live ? 45e3 : 180e3);
   }
 
   async function init() {
@@ -330,6 +502,8 @@
     renderSubscribe();
     renderSocial();
     await load();
+    route();
+    window.addEventListener("hashchange", route);
     setInterval(tickCountdown, 30e3);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
   }
