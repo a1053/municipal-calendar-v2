@@ -115,7 +115,7 @@ a { color: inherit; }
 @media (min-width: 960px) {
   .layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
   .a-partidos { grid-column: 1; grid-row: 1; }
-  .a-tabla { grid-column: 2; grid-row: 1; position: sticky; top: 56px; }
+  .a-tabla { grid-column: 2; grid-row: 1; }
   .a-noticias { grid-column: 1; grid-row: 2; }
   .a-redes { grid-column: 2; grid-row: 2; }
 }
