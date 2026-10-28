@@ -85,6 +85,13 @@ ESPN + Google Noticias ──► scripts/build_site_data.py ──► site/ ─�
 - Si ESPN falla al leer partidos, no se publica nada y queda el sitio anterior.
   Si falla la tabla o las noticias, se reutiliza la última versión publicada.
 - El calendario `.ics` también se sirve desde el sitio (`/municipal.ics`).
+- **Página de cada partido** (`#/partido/ID`): cronología, estadísticas y
+  alineaciones; antes del partido, el rival (posición, forma, cruces previos).
+- **Jugadores:** goles, asistencias, tarjetas y partidos jugados, sumados de las
+  alineaciones y eventos de ESPN de los partidos publicados.
+- **Vista previa al compartir:** en cada corrida se genera `og.png` y las
+  metaetiquetas de `index.html` con el próximo partido o el último resultado
+  (la tipografía Poppins está en `scripts/fonts`, licencia OFL).
 
 **Activar una sola vez:** *Settings → Pages → Build and deployment → Source:
 GitHub Actions*. Luego corre el workflow desde la pestaña **Actions**.

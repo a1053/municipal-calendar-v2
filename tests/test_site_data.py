@@ -169,7 +169,7 @@ class BuildTests(unittest.TestCase):
             raise RuntimeError("sin red")
         code, files = self.run_build(fetch, get_json)
         self.assertEqual(code, 0)
-        self.assertEqual(set(files), {"matches.json", "standings.json", "news.json", "meta.json"})
+        self.assertEqual(set(files), {"matches.json", "standings.json", "players.json", "news.json", "meta.json"})
         self.assertIn('"standings": "error"', files["meta.json"])
         self.assertIn('"result": "G"', files["matches.json"])
 

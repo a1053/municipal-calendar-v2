@@ -25,6 +25,7 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import site_details as sd  # noqa: E402
 import update_calendar as cal  # noqa: E402  (reutiliza API de ESPN y la "base de datos")
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -83,7 +84,7 @@ def _get_json(url: str):
 # --------------------------------------------------------------------------
 # Partidos con marcador
 # --------------------------------------------------------------------------
-def events_from_api(obj: dict, competition: str) -> dict:
+def events_from_api(obj: dict, competition: str, slug: str = "") -> dict:
     out: dict[str, dict] = {}
     for ev in (obj or {}).get("events", []):
         gid = str(ev.get("id", ""))
@@ -122,6 +123,7 @@ def events_from_api(obj: dict, competition: str) -> dict:
             "id": gid,
             "start": cal._to_utc(when).strftime(cal.STAMP),
             "competition": competition,
+            "slug": slug,
             "venue": (comp.get("venue") or {}).get("fullName") or "",
             "state": state,                      # pre | in | post
             "completed": completed,
@@ -268,9 +270,6 @@ def merge_news(*lists: list[dict], limit: int = 40) -> list[dict]:
     return out[:limit]
 
 
-# --------------------------------------------------------------------------
-# Orquestación
-# --------------------------------------------------------------------------
 def _previous(prev_dir: Path | None, name: str):
     if prev_dir and (prev_dir / name).exists():
         try:
@@ -280,7 +279,53 @@ def _previous(prev_dir: Path | None, name: str):
     return None
 
 
-def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None) -> int:
+MAX_DETAILS = 45
+
+
+def build_details(matches: list[dict], standings: dict, out_dir: Path, now: datetime, sources: dict) -> list[dict]:
+    """Detalle por partido (cronología, alineaciones, estadísticas, rival).
+
+    Devuelve la lista de detalles usados para armar la tabla de jugadores.
+    Cualquier fallo se salta: el partido simplemente queda sin página de detalle.
+    """
+    nxt = next((m for m in matches if m["state"] == "pre" and not m["postponed"]
+                and cal._to_utc(m["start"]) > now), None)
+    wanted = [m for m in matches if m.get("slug") and (m["state"] in ("in", "post") or m is nxt)]
+    wanted = wanted[-MAX_DETAILS:]
+    (out_dir / "match").mkdir(parents=True, exist_ok=True)
+    used, ok, failed = [], 0, 0
+    for m in wanted:
+        try:
+            detail = sd.parse_summary(_get_json(sd.SUMMARY_URL.format(slug=m["slug"], id=m["id"])), m)
+        except Exception as exc:  # noqa: BLE001
+            failed += 1
+            print(f"Aviso: sin detalle del partido {m['id']} ({type(exc).__name__})")
+            continue
+        rival = None
+        if m is nxt and m["slug"] == LEAGUE_SLUG:
+            rid = (m["away"] if m["home"]["id"] == cal.TEAM_ID else m["home"])["id"]
+            try:
+                rival_events = events_from_api(_get_json(cal.API_URL.format(slug=LEAGUE_SLUG, team=rid)) or {}, "", LEAGUE_SLUG)
+            except Exception as exc:  # noqa: BLE001
+                print(f"Aviso: sin calendario del rival ({type(exc).__name__})")
+                rival_events = {}
+            rival = sd.build_rival(m, cal.TEAM_ID, standings, rival_events, matches)
+        if not detail["has_data"] and not rival:
+            continue
+        ok += 1
+        m["detail"] = True
+        used.append(detail)
+        payload = {"id": m["id"], "updated": now.strftime(cal.STAMP), "rival": rival,
+                   **{k: detail[k] for k in ("events", "lineups", "stats")}}
+        (out_dir / "match" / f"{m['id']}.json").write_text(
+            json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    sources["details"] = "ok" if ok or not wanted else "error"
+    print(f"Detalles: {ok} partidos con detalle, {failed} con error")
+    return used
+
+
+def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
+          site_url: str | None = None, index_path: Path | None = None) -> int:
     now = now or datetime.now(UTC).replace(microsecond=0)
     stamp = _iso(now)
     sources: dict[str, str] = {}
@@ -296,7 +341,7 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None) -> 
                 return 1
             if data is None:
                 break
-            found.update(events_from_api(data, name))
+            found.update(events_from_api(data, name, slug))
     if not found:
         print("::error title=ESPN partidos::sin partidos; no se publica nada")
         return 1
@@ -349,9 +394,23 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None) -> 
             news = {**old, "stale": True}
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    details = build_details(matches, standings, out_dir, now, sources)
+    players = sd.build_players(details, cal.TEAM_ID)
+
+    if site_url and index_path and index_path.exists():
+        text = sd.share_text(matches, now)
+        has_img = False
+        try:
+            has_img = sd.make_og_png(index_path.parent / "og.png", text)
+        except Exception as exc:  # noqa: BLE001
+            print(f"Aviso: no se pudo crear og.png ({type(exc).__name__}: {exc})")
+        sd.inject_og(index_path, site_url, text, has_img)
+        sources["share"] = "ok" if has_img else "sin imagen"
+
     files = {
         "matches.json": {"updated": stamp, "team_id": cal.TEAM_ID, "team": cal.TEAM_NAME, "matches": matches},
         "standings.json": standings,
+        "players.json": {"updated": stamp, "players": players},
         "news.json": news,
         "meta.json": {"updated": stamp, "sources": sources},
     }
@@ -366,8 +425,10 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     ap.add_argument("--previous", type=Path, help="carpeta con los JSON publicados antes (respaldo)")
+    ap.add_argument("--site-url", help="URL pública del sitio (para la vista previa al compartir)")
+    ap.add_argument("--index", type=Path, help="index.html del sitio a publicar (se le agregan metaetiquetas)")
     args = ap.parse_args(argv)
-    return build(args.out, args.previous)
+    return build(args.out, args.previous, site_url=args.site_url, index_path=args.index)
 
 
 if __name__ == "__main__":

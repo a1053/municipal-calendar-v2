@@ -6,6 +6,10 @@
   <title>Municipal en vivo</title>
   <meta name="description" content="Partidos, resultados, tabla de la Liga Bantrab, noticias y redes de Municipal, en un solo lugar y al día.">
   <meta name="theme-color" content="#2b0a0f">
+  <!--og-->
+  <meta property="og:title" content="Municipal en vivo">
+  <meta property="og:description" content="Partidos, resultados, tabla de la Liga Bantrab y noticias de Municipal.">
+  <!--/og-->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Public+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,52 +23,66 @@
     <nav aria-label="Secciones">
       <a href="#partidos">Partidos</a>
       <a href="#tabla">Tabla</a>
+      <a href="#jugadores">Jugadores</a>
       <a href="#noticias">Noticias</a>
       <a href="#redes">Redes</a>
     </nav>
   </header>
 
   <main>
-    <section id="marcador" class="board" aria-label="Marcador" aria-live="polite">
-      <div class="board-inner" id="board">
-        <p class="board-msg">Cargando el marcador…</p>
-      </div>
-    </section>
-
-    <div class="layout">
-      <section id="partidos" class="block a-partidos" aria-labelledby="h-partidos">
-        <h2 id="h-partidos">Partidos</h2>
-        <div class="form" id="form" hidden></div>
-        <h3>Próximos</h3>
-        <ol class="matches" id="upcoming"></ol>
-        <h3>Resultados</h3>
-        <ol class="matches" id="results"></ol>
-        <details class="subscribe">
-          <summary>Agregar los partidos a mi calendario</summary>
-          <p>Se actualiza solo si un partido cambia de fecha u hora.</p>
-          <ul id="subscribe-links"></ul>
-        </details>
-      </section>
-
-      <section id="tabla" class="block a-tabla" aria-labelledby="h-tabla">
-        <h2 id="h-tabla">Tabla de la Liga Bantrab</h2>
-        <div id="standings"></div>
-      </section>
-
-      <section id="noticias" class="block a-noticias" aria-labelledby="h-noticias">
-        <h2 id="h-noticias">Noticias</h2>
-        <div class="seg" role="tablist" aria-label="Tipo de noticias">
-          <button role="tab" id="tab-municipal" aria-selected="true" aria-controls="news-list" data-feed="municipal">De Municipal</button>
-          <button role="tab" id="tab-liga" aria-selected="false" aria-controls="news-list" data-feed="liga" tabindex="-1">De la liga</button>
+    <div id="home">
+      <section id="marcador" class="board" aria-label="Marcador" aria-live="polite">
+        <div class="board-inner" id="board">
+          <p class="board-msg">Cargando el marcador…</p>
         </div>
-        <ul class="news" id="news-list" role="tabpanel" aria-labelledby="tab-municipal"></ul>
       </section>
 
-      <section id="redes" class="block a-redes" aria-labelledby="h-redes">
-        <h2 id="h-redes">Redes</h2>
-        <div class="social" id="social"></div>
-      </section>
+      <div class="layout">
+        <div class="col">
+          <section id="partidos" class="block a-partidos" aria-labelledby="h-partidos">
+            <h2 id="h-partidos">Partidos</h2>
+            <div class="form" id="form" hidden></div>
+            <h3>Próximos</h3>
+            <ol class="matches" id="upcoming"></ol>
+            <h3>Resultados</h3>
+            <ol class="matches" id="results"></ol>
+            <details class="subscribe">
+              <summary>Agregar los partidos a mi calendario</summary>
+              <p>Se actualiza solo si un partido cambia de fecha u hora.</p>
+              <ul id="subscribe-links"></ul>
+            </details>
+          </section>
+
+          <section id="noticias" class="block a-noticias" aria-labelledby="h-noticias">
+            <h2 id="h-noticias">Noticias</h2>
+            <div class="seg" role="tablist" aria-label="Tipo de noticias">
+              <button role="tab" id="tab-municipal" aria-selected="true" aria-controls="news-list" data-feed="municipal">De Municipal</button>
+              <button role="tab" id="tab-liga" aria-selected="false" aria-controls="news-list" data-feed="liga" tabindex="-1">De la liga</button>
+            </div>
+            <ul class="news" id="news-list" role="tabpanel" aria-labelledby="tab-municipal"></ul>
+          </section>
+        </div>
+
+        <div class="col">
+          <section id="tabla" class="block a-tabla" aria-labelledby="h-tabla">
+            <h2 id="h-tabla">Tabla de la Liga Bantrab</h2>
+            <div id="standings"></div>
+          </section>
+
+          <section id="jugadores" class="block a-jugadores" aria-labelledby="h-jugadores">
+            <h2 id="h-jugadores">Jugadores</h2>
+            <div id="players"></div>
+          </section>
+
+          <section id="redes" class="block a-redes" aria-labelledby="h-redes">
+            <h2 id="h-redes">Redes</h2>
+            <div class="social" id="social"></div>
+          </section>
+        </div>
+      </div>
     </div>
+
+    <div id="vista-partido" class="match-view" hidden></div>
   </main>
 
   <footer class="foot">
