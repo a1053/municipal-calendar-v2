@@ -85,6 +85,14 @@ ESPN + Google Noticias ──► scripts/build_site_data.py ──► site/ ─�
 - Si ESPN falla al leer partidos, no se publica nada y queda el sitio anterior.
   Si falla la tabla o las noticias, se reutiliza la última versión publicada.
 - El calendario `.ics` también se sirve desde el sitio (`/municipal.ics`).
+- **Noticias de Municipal** de muchas fuentes, sin claves: Google Noticias y
+  Bing Noticias (varias búsquedas), GDELT (índice mundial de noticias), ESPN y
+  los feeds RSS de medios guatemaltecos (`scripts/news_sources.py`). Cada nota
+  pasa un filtro para descartar otros "Municipal" (Perú, El Salvador, Costa
+  Rica, política local). Se deduplican por titular y se guardan acumuladas
+  (hasta 80 notas de los últimos 150 días). El estado de cada fuente queda en
+  el log del workflow y en `news.json`. Para agregar un medio, súmalo a
+  `SPORTS_FEEDS` o `WP_SEARCH`.
 - **Página de cada partido** (`#/partido/ID`): cronología, estadísticas y
   alineaciones; antes del partido, el rival (posición, forma, cruces previos).
 - **Jugadores:** goles, asistencias, tarjetas y partidos jugados, sumados de las

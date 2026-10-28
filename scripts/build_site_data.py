@@ -25,6 +25,7 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import news_sources  # noqa: E402
 import site_details as sd  # noqa: E402
 import update_calendar as cal  # noqa: E402  (reutiliza API de ESPN y la "base de datos")
 
@@ -69,6 +70,14 @@ def _logo(team: dict) -> str:
     if logos and isinstance(logos[0], dict):
         return logos[0].get("href", "")
     return ""
+
+
+def _get_text(url: str) -> str:
+    import requests
+
+    resp = requests.get(url, headers=cal.HEADERS, timeout=20)
+    resp.raise_for_status()
+    return resp.text
 
 
 def _get_json(url: str):
@@ -373,25 +382,28 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
     except Exception as exc:  # noqa: BLE001
         print(f"Aviso: noticias ESPN no disponibles ({type(exc).__name__})")
         sources["news_espn"] = "error"
+    g_items, feed_status = [], {}
     try:
-        import requests
-        from urllib.parse import quote
-
-        r = requests.get(GNEWS_URL.format(q=quote(GNEWS_QUERY)), headers=cal.HEADERS, timeout=30)
-        r.raise_for_status()
-        g_items = google_news(r.text)
-        sources["news_google"] = "ok"
+        g_items, feed_status = news_sources.collect(_get_text)
     except Exception as exc:  # noqa: BLE001
-        print(f"Aviso: Google News no disponible ({type(exc).__name__})")
-        sources["news_google"] = "error"
+        print(f"Aviso: noticias externas no disponibles ({type(exc).__name__})")
+    working = sum(1 for v in feed_status.values() if v.startswith("ok"))
+    sources["news_feeds"] = "ok" if working else "error"
+    for k, v in feed_status.items():
+        print(f"  noticias {k}: {v}")
 
-    news = {"municipal": merge_news([i for i in espn_items if i["municipal"]], g_items),
+    # Archivo acumulado: se conserva lo ya publicado (si sigue siendo relevante) además de lo nuevo.
+    prev_news = _previous(prev_dir, "news.json") or {}
+    kept = [i for i in prev_news.get("municipal", []) if news_sources.is_relevant(i, True)]
+    muni = news_sources.drop_old(
+        merge_news([i for i in espn_items if i["municipal"]], g_items, kept, limit=80), now)
+    news = {"municipal": muni,
             "liga": merge_news([i for i in espn_items if not i["municipal"]], limit=20),
-            "stale": False}
+            "sources": sorted({i["source"] for i in muni if i.get("source")}),
+            "feeds": feed_status, "stale": False}
     if not news["municipal"] and not news["liga"]:
-        old = _previous(prev_dir, "news.json")
-        if old:
-            news = {**old, "stale": True}
+        if prev_news:
+            news = {**prev_news, "stale": True}
 
     out_dir.mkdir(parents=True, exist_ok=True)
     details = build_details(matches, standings, out_dir, now, sources)
