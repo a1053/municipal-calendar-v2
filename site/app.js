@@ -385,24 +385,34 @@
   }
 
   // ---------- noticias ----------
+  let newsShown = 12;
   function renderNews() {
-    const list = $("news-list");
+    const list = $("news-list"), more = $("news-more");
     list.replaceChildren();
+    more.replaceChildren();
     const items = (data.news && data.news[newsFeed]) || [];
     if (!items.length) {
       list.append(el("li", { class: "empty", text: "No hay noticias por ahora." }));
       return;
     }
-    items.slice(0, 12).forEach((n) => list.append(el("li", null,
+    items.slice(0, newsShown).forEach((n) => list.append(el("li", null,
       el("a", { href: safeUrl(n.url), target: "_blank", rel: "noopener" },
         el("div", null,
           el("div", { class: "hl", text: n.title }),
           n.summary ? el("p", { class: "sum", text: n.summary }) : null,
           el("div", { class: "src", text: [n.source, n.published ? ago(n.published) : ""].filter(Boolean).join(", ") })),
         n.image && /^https?:/.test(n.image) ? el("img", { src: n.image, alt: "", loading: "lazy", referrerpolicy: "no-referrer" }) : el("span")))));
+    const srcs = (newsFeed === "municipal" && data.news.sources) || [];
+    more.append(el("p", { class: "meta", text: `${items.length} noticias${srcs.length ? ` de ${srcs.length} medios` : ""}. Se guardan las de los últimos meses.` }));
+    if (items.length > newsShown) {
+      const b = el("button", { class: "btn btn-ghost", type: "button", text: `Ver más (${items.length - newsShown})` });
+      b.addEventListener("click", () => { newsShown += 12; renderNews(); });
+      more.append(b);
+    }
   }
   document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
     newsFeed = b.dataset.feed;
+    newsShown = 12;
     document.querySelectorAll(".seg button").forEach((x) => {
       x.setAttribute("aria-selected", String(x === b));
       x.tabIndex = x === b ? 0 : -1;
@@ -465,7 +475,7 @@
     const p = $("updated");
     if (meta && meta.updated) {
       const bad = Object.entries(meta.sources || {}).filter(([, v]) => v !== "ok").map(([k]) => k);
-      p.textContent = `Actualizado ${ago(meta.updated)}, con datos de ESPN y Google Noticias.` +
+      p.textContent = `Actualizado ${ago(meta.updated)}, con datos de ESPN, buscadores de noticias y medios guatemaltecos.` +
         (bad.length ? ` Sin respuesta en la última actualización: ${bad.join(", ")}.` : "");
     }
   }
