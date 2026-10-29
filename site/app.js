@@ -152,7 +152,7 @@
       el("span", { class: `n${isMe(side) ? " me" : ""}`, text: side.name }),
       el("span", { class: "s", text: showScore && side.score != null ? side.score : "" }));
     const d = start(m);
-    const meta = [compLabel(m.competition), m.venue].filter(Boolean).join(", ");
+    const meta = [m.postponed ? "Aplazado" : "", compLabel(m.competition), m.venue].filter(Boolean).join(", ");
     const internal = m.detail;
     return el("li", null,
       el("a", { class: "m", href: matchHref(m), target: internal ? null : "_blank", rel: internal ? null : "noopener" },
@@ -254,6 +254,154 @@
       b.addEventListener("click", () => { showAllPlayers = !showAllPlayers; renderPlayers(); });
       box.append(b);
     }
+  }
+
+  // ---------- filtros, rendimiento y calendario completo ----------
+  const LEAGUE = () => config.league_competition || "Liga Nacional de Guatemala";
+  const allMatches = () => (data.matches && data.matches.matches) || [];
+  const dayLong = (iso) => fDayLong(new Date(iso)).replace(",", "");
+  const timeOf = (iso) => fTime(new Date(iso));
+  const num = (n, d) => (n == null ? "-" : n.toFixed(d));
+  let perfComp = "all";
+  const cal = { comp: "all", when: "upcoming", venue: "all" };
+  let pendingFocus = null;
+
+  function competitions() {
+    const seen = new Map();
+    allMatches().forEach((m) => { if (m.competition) seen.set(m.competition, (seen.get(m.competition) || 0) + 1); });
+    return [...seen.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  }
+  function filterBar(group, options, current, onPick) {
+    return el("div", { class: "row", role: "group", "aria-label": group },
+      el("span", { class: "lbl", text: group }),
+      el("div", { class: "seg" }, ...options.map((o) => {
+        const b = el("button", { type: "button", "aria-pressed": String(o.key === current), "data-g": group, "data-k": o.key, text: o.label });
+        b.addEventListener("click", () => { pendingFocus = { g: group, k: o.key }; onPick(o.key); });
+        return b;
+      })));
+  }
+  function restoreFocus() {
+    if (!pendingFocus) return;
+    const b = document.querySelector(`button[data-g="${pendingFocus.g}"][data-k="${CSS.escape(pendingFocus.k)}"]`);
+    pendingFocus = null;
+    if (b) b.focus();
+  }
+  function myStanding() {
+    for (const g of (data.standings && data.standings.groups) || []) {
+      const r = g.rows.find((x) => x.is_municipal);
+      if (r) return { pos: r.pos, pts: r.pts, pj: r.pj, league: compLabel(LEAGUE()) };
+    }
+    return null;
+  }
+
+  function renderPerformance() {
+    const box = $("perf");
+    box.replaceChildren();
+    const S = window.MuniStats;
+    if (!S) return;
+    const all = S.played(allMatches(), config.team_id, config.team);
+    if (!all.length) {
+      box.append(el("p", { class: "empty", text: "Todavía no hay partidos jugados para calcular estadísticas." }));
+      return;
+    }
+    const comps = competitions();
+    if (perfComp !== "all" && !comps.includes(perfComp)) perfComp = "all";
+    const list = perfComp === "all" ? all : all.filter((x) => x.competition === perfComp);
+    const stats = S.summarize(list);
+    const next = S.nextMatches(allMatches().filter((m) => perfComp === "all" || m.competition === perfComp),
+      Date.now(), config.team_id, config.team, 5);
+    const standing = perfComp === "all" || perfComp === LEAGUE() ? myStanding() : null;
+    const sentences = S.narrative({
+      team: config.team, scope: { all: perfComp === "all", label: perfComp === "all" ? "" : compLabel(perfComp) },
+      stats, standing, next, fmt: { day: dayLong, time: timeOf },
+    });
+
+    if (comps.length > 1) {
+      box.append(filterBar("Competencia", [{ key: "all", label: "Todas" }, ...comps.map((c) => ({ key: c, label: compLabel(c) }))],
+        perfComp, (k) => { perfComp = k; renderPerformance(); }));
+    }
+    box.append(el("p", { class: "resumen", text: sentences.join(" ") }));
+    if (!stats.pj) return;
+
+    const items = [
+      ["Partidos jugados", String(stats.pj), `${stats.g} G, ${stats.e} E, ${stats.p} P`],
+      ["Partidos ganados", `${Math.round(stats.winPct)}%`, `${stats.g} de ${stats.pj}`],
+      ["Puntos por partido", num(stats.ppg, 2), `${stats.pts} puntos`],
+      ["Goles a favor por partido", num(stats.gfpg, 1), `${stats.gf} en total`],
+      ["Goles en contra por partido", num(stats.gcpg, 1), `${stats.gc} en total`],
+      ["Porterías en cero", String(stats.cleanSheets), `de ${stats.pj} partidos`],
+    ];
+    box.append(el("dl", { class: "statgrid" }, ...items.map(([k, v, note]) =>
+      el("div", null, el("dt", { text: k }), el("dd", null, v, el("small", { text: note }))))));
+
+    const row = (label, b) => el("tr", null, el("td", { text: label }),
+      ...[b.pj, b.g, b.e, b.p, b.gf, b.gc].map((x) => el("td", { text: x })));
+    box.append(el("h3", { text: "Local y visitante" }),
+      el("div", { class: "tablewrap" }, el("table", { class: "std split" },
+        el("thead", null, el("tr", null, el("th", { scope: "col", text: "" }),
+          ...[["PJ", "Partidos jugados"], ["G", "Ganados"], ["E", "Empatados"], ["P", "Perdidos"], ["GF", "Goles a favor"], ["GC", "Goles en contra"]]
+            .map(([t, title]) => el("th", { scope: "col", text: t, title })))),
+        el("tbody", null, row("Local", stats.home), row("Visitante", stats.away)))));
+
+    box.append(el("h3", { text: "Resultados de la temporada" }),
+      el("div", { class: "chips" }, ...list.map((x) =>
+        el("span", { class: `chip ${x.res}`, text: x.res,
+          title: `${x.home ? "Local" : "Visitante"} contra ${x.vs}: ${x.gf}-${x.gc}` }))));
+    restoreFocus();
+  }
+
+  const isPlayed = (m) => m.state === "post" && !m.postponed;
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+
+  function renderCalendarView() {
+    const view = $("vista-calendario");
+    view.replaceChildren(el("a", { class: "back", href: "#partidos", text: "Volver a partidos" }));
+    const body = el("div", { class: "mv-body" });
+    view.append(body, el("span"));
+    body.append(el("h2", { class: "cal-title", text: "Todos los partidos" }));
+    const ms = allMatches();
+    if (!ms.length) {
+      body.append(el("p", { class: "empty", text: "Todavía no hay partidos para mostrar." }));
+      return;
+    }
+    const comps = competitions();
+    if (cal.comp !== "all" && !comps.includes(cal.comp)) cal.comp = "all";
+    const redo = () => renderCalendarView();
+    const filters = el("div", { class: "filters" });
+    if (comps.length > 1) {
+      filters.append(filterBar("Competencia", [{ key: "all", label: "Todas" }, ...comps.map((c) => ({ key: c, label: compLabel(c) }))],
+        cal.comp, (k) => { cal.comp = k; redo(); }));
+    }
+    filters.append(
+      filterBar("Partidos", [{ key: "upcoming", label: "Próximos" }, { key: "played", label: "Jugados" }, { key: "all", label: "Todos" }],
+        cal.when, (k) => { cal.when = k; redo(); }),
+      filterBar("Sede", [{ key: "all", label: "Todas" }, { key: "home", label: "Local" }, { key: "away", label: "Visitante" }],
+        cal.venue, (k) => { cal.venue = k; redo(); }));
+    body.append(filters);
+
+    let list = ms.filter((m) =>
+      (cal.comp === "all" || m.competition === cal.comp) &&
+      (cal.when === "all" || (cal.when === "played") === isPlayed(m)) &&
+      (cal.venue === "all" || (cal.venue === "home") === isMe(m.home)));
+    list.sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
+    if (cal.when === "played") list.reverse();
+    body.append(el("p", { class: "cal-count", text: `${list.length} ${list.length === 1 ? "partido" : "partidos"}` }));
+    if (!list.length) {
+      body.append(el("p", { class: "empty", text: "No hay partidos con esos filtros. Prueba con otra competencia o con Todos." }));
+    }
+    const monthOf = (m) => cap(fmt({ month: "long", year: "numeric" }).format(new Date(m.start)));
+    let ol = null, last = "";
+    list.forEach((m) => {
+      const key = monthOf(m);
+      if (key !== last) {
+        last = key;
+        body.append(el("h3", { class: "month", text: key }));
+        ol = el("ol", { class: "matches" });
+        body.append(ol);
+      }
+      ol.append(matchRow(m));
+    });
+    restoreFocus();
   }
 
   // ---------- página del partido ----------
@@ -368,20 +516,23 @@
   }
 
   function route() {
-    const hit = location.hash.match(/^#\/partido\/(\d+)/);
-    const home = $("home"), view = $("vista-partido");
-    if (!hit) {
-      const wasView = !view.hidden;
-      view.hidden = true; home.hidden = false;
+    const matchHit = location.hash.match(/^#\/partido\/(\d+)/);
+    const calHit = /^#\/calendario/.test(location.hash);
+    const home = $("home"), mv = $("vista-partido"), cv = $("vista-calendario");
+    if (!matchHit && !calHit) {
+      const wasView = !mv.hidden || !cv.hidden;
+      mv.hidden = true; cv.hidden = true; home.hidden = false;
       document.title = BASE_TITLE;
       const target = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
       if (wasView) { if (target) target.scrollIntoView(); else window.scrollTo(0, 0); }
       return;
     }
     const wasHome = !home.hidden;
-    home.hidden = true; view.hidden = false;
+    home.hidden = true;
+    mv.hidden = !matchHit; cv.hidden = !calHit;
     if (wasHome) window.scrollTo(0, 0);
-    renderMatchView(hit[1]);
+    if (matchHit) renderMatchView(matchHit[1]);
+    else { document.title = `Todos los partidos | ${BASE_TITLE}`; renderCalendarView(); }
   }
 
   // ---------- noticias ----------
@@ -496,13 +647,13 @@
     } else {
       renderBoard(); renderMatches();
     }
-    renderStandings(); renderPlayers(); renderNews(); renderFooter();
+    renderStandings(); renderPerformance(); renderPlayers(); renderNews(); renderFooter();
     schedule();
   }
   function schedule() {
     clearTimeout(timer);
     const live = data.matches && data.matches.matches.some((m) => m.state === "in");
-    timer = setTimeout(async () => { await load(); if (!$("vista-partido").hidden) route(); }, live ? 45e3 : 180e3);
+    timer = setTimeout(async () => { await load(); if ($("home").hidden) route(); }, live ? 45e3 : 180e3);
   }
 
   async function init() {

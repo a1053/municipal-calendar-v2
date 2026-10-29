@@ -46,6 +46,7 @@
             <ol class="matches" id="upcoming"></ol>
             <h3>Resultados</h3>
             <ol class="matches" id="results"></ol>
+            <p class="actions"><a class="btn" href="#/calendario">Ver todos los partidos</a></p>
             <details class="subscribe">
               <summary>Agregar los partidos a mi calendario</summary>
               <p>Se actualiza solo si un partido cambia de fecha u hora.</p>
@@ -70,6 +71,11 @@
             <div id="standings"></div>
           </section>
 
+          <section id="rendimiento" class="block a-rendimiento" aria-labelledby="h-rendimiento">
+            <h2 id="h-rendimiento">Rendimiento</h2>
+            <div id="perf"></div>
+          </section>
+
           <section id="jugadores" class="block a-jugadores" aria-labelledby="h-jugadores">
             <h2 id="h-jugadores">Jugadores</h2>
             <div id="players"></div>
@@ -84,6 +90,7 @@
     </div>
 
     <div id="vista-partido" class="match-view" hidden></div>
+    <div id="vista-calendario" class="match-view" hidden></div>
   </main>
 
   <footer class="foot">
@@ -92,6 +99,7 @@
   </footer>
 
   <noscript><p class="noscript">Este sitio necesita JavaScript para mostrar los partidos y la tabla.</p></noscript>
+  <script src="stats.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

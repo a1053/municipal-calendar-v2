@@ -93,6 +93,14 @@ ESPN + Google Noticias ──► scripts/build_site_data.py ──► site/ ─�
   (hasta 80 notas de los últimos 150 días). El estado de cada fuente queda en
   el log del workflow y en `news.json`. Para agregar un medio, súmalo a
   `SPORTS_FEEDS` o `WP_SEARCH`.
+- **Rendimiento:** porcentaje de victorias, puntos y goles por partido,
+  porterías en cero, local contra visitante y los resultados de la temporada,
+  con filtro por competencia, más un resumen en texto generado con esas cifras
+  (la tabla y el calendario). Todo se calcula en el navegador con
+  `site/stats.js`; sus pruebas están en `tests/stats.test.js` (se corren con
+  `node tests/stats.test.js` y también desde `unittest`).
+- **Todos los partidos** (`#/calendario`): el calendario completo agrupado por
+  mes, con filtros por competencia, próximos/jugados y local/visitante.
 - **Página de cada partido** (`#/partido/ID`): cronología, estadísticas y
   alineaciones; antes del partido, el rival (posición, forma, cruces previos).
 - **Jugadores:** goles, asistencias, tarjetas y partidos jugados, sumados de las
