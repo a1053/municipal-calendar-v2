@@ -128,3 +128,19 @@ python scripts/update_calendar.py --from-file tests/fixtures/calendar.html
 ## Liguilla "si terminara hoy"
 
 La sección **Liguilla** arma la llave del Apertura con la tabla actual: 1.º y 2.º pasan directo a semifinales, 3.º vs 6.º y 4.º vs 5.º juegan ronda previa, y el 1.º enfrenta al peor ubicado de los ganadores. El mejor ubicado cierra siempre la vuelta en casa. Se puede tocar un equipo para avanzarlo en la llave. La fase regular termina cuando todos juegan 22 partidos (`liguilla` en `site/config.json`). La lógica está en `site/liguilla.js` con pruebas en `tests/liguilla.test.js`. Supuestos: series a ida y vuelta y orden de la tabla tal como lo entrega ESPN.
+
+### Probabilidades de clasificar
+
+`scripts/odds.py` simula miles de veces lo que falta de la fase regular y cuenta cuántas veces cada equipo termina entre los 6 primeros (y entre los 2 primeros). Cada equipo pesa según sus goles a favor y en contra (mezclados con el promedio de la liga mientras haya pocos partidos), con ventaja de local y goles Poisson. Los partidos que faltan salen del calendario de la liga en ESPN; los que no tienen fecha, como los aplazados, se reparten al azar entre los equipos a los que les falten. El desempate supuesto es diferencia de goles y luego goles a favor. Resultado en `data/odds.json`; pruebas en `tests/test_odds.py`. Es una estimación: no considera lesiones, refuerzos ni suspensiones.
+
+## Pronóstico del partido
+
+`site/forecast.js` calcula, para el próximo partido de liga, el porcentaje de victoria, empate y derrota y los marcadores más probables. Usa el mismo modelo que las probabilidades de la liguilla (goles a favor y en contra, ventaja de local, Poisson). Aparece en Partidos y en la página de cada partido que aún no empieza. Pruebas: `tests/forecast.test.js`.
+
+## Instalar como app
+
+El sitio se puede instalar en el celular ("Agregar a pantalla de inicio" o "Instalar app"). Incluye `manifest.webmanifest`, íconos en `site/icons/` (se regeneran con `python scripts/make_icons.py`) y `site/sw.js`, que pide todo primero a internet y, si no hay conexión, muestra lo último que se vio. El ícono es una "M", no el escudo del club.
+
+## Datos en vivo desde el navegador
+
+GitHub retrasa las corridas programadas (a veces horas), así que `site/live.js` pone la tabla y los marcadores al día directamente con ESPN cada vez que se abre o refresca la página (cada 3 minutos, o 45 segundos con partido en vivo). Si ESPN no responde o cambia su formato, el sitio muestra los datos de la última corrida. Las probabilidades de la liguilla se siguen calculando en cada corrida del sitio y la página indica cuándo. Pruebas: `tests/live.test.js`.

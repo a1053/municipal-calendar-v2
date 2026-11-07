@@ -6,6 +6,11 @@
   <title>Municipal en vivo</title>
   <meta name="description" content="Partidos, resultados, tabla de la Liga Bantrab, noticias y redes de Municipal, en un solo lugar y al día.">
   <meta name="theme-color" content="#2b0a0f">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Municipal">
   <!--og-->
   <meta property="og:title" content="Municipal en vivo">
   <meta property="og:description" content="Partidos, resultados, tabla de la Liga Bantrab y noticias de Municipal.">
@@ -38,11 +43,17 @@
         </div>
       </section>
 
+      <section id="liguilla" class="block liguilla" aria-labelledby="h-liguilla">
+        <h2 id="h-liguilla">Liguilla: si terminara hoy</h2>
+        <div id="liga-box"></div>
+      </section>
+
       <div class="layout">
         <div class="col">
           <section id="partidos" class="block a-partidos" aria-labelledby="h-partidos">
             <h2 id="h-partidos">Partidos</h2>
             <div class="form" id="form" hidden></div>
+            <div id="forecast"></div>
             <h3>Próximos</h3>
             <ol class="matches" id="upcoming"></ol>
             <h3>Resultados</h3>
@@ -70,11 +81,6 @@
           <section id="tabla" class="block a-tabla" aria-labelledby="h-tabla">
             <h2 id="h-tabla">Tabla de la Liga Bantrab</h2>
             <div id="standings"></div>
-          </section>
-
-          <section id="liguilla" class="block a-liguilla" aria-labelledby="h-liguilla">
-            <h2 id="h-liguilla">Liguilla: si terminara hoy</h2>
-            <div id="liga-box"></div>
           </section>
 
           <section id="rendimiento" class="block a-rendimiento" aria-labelledby="h-rendimiento">
@@ -107,6 +113,8 @@
   <noscript><p class="noscript">Este sitio necesita JavaScript para mostrar los partidos y la tabla.</p></noscript>
   <script src="stats.js" defer></script>
   <script src="liguilla.js" defer></script>
+  <script src="forecast.js" defer></script>
+  <script src="live.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

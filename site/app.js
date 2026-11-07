@@ -146,6 +146,30 @@
     box.dataset.next = next ? next.start : "";
   }
 
+  function forecastCard(m) {
+    const F = window.MuniForecast;
+    const g = data.standings && data.standings.groups && data.standings.groups[0];
+    if (!F || !g || !m || m.state !== "pre" || m.postponed || (m.slug && m.slug !== "gua.1")) return null;
+    const f = F.forecast(g.rows, m.home.id, m.away.id);
+    if (!f) return null;
+    const r0 = (n) => `${Math.round(n)}%`;
+    const bar = el("div", { class: "fc-bar", role: "img",
+      "aria-label": `${m.home.name} ${r0(f.pHome)}, empate ${r0(f.pDraw)}, ${m.away.name} ${r0(f.pAway)}` },
+      el("span", { class: isMe(m.home) ? "w me" : "w", style: `width:${f.pHome}%` }),
+      el("span", { class: "d", style: `width:${f.pDraw}%` }),
+      el("span", { class: isMe(m.away) ? "l me" : "l", style: `width:${f.pAway}%` }));
+    return el("div", { class: "forecast" },
+      el("h3", { text: "Pronóstico del partido" }),
+      el("div", { class: "fc-nums" },
+        el("span", null, el("strong", { text: r0(f.pHome) }), ` gana ${m.home.name}`),
+        el("span", null, el("strong", { text: r0(f.pDraw) }), " empate"),
+        el("span", null, el("strong", { text: r0(f.pAway) }), ` gana ${m.away.name}`)),
+      bar,
+      el("p", { class: "fc-scores" }, "Marcadores más probables: ",
+        ...f.topScores.map((s) => el("span", { class: "chip-s", text: `${s.home}-${s.away} (${r0(s.p)})` }))),
+      el("p", { class: "liga-help", text: "Estimación con los goles a favor y en contra de cada equipo en el torneo y ventaja de local. No considera lesiones ni alineaciones. Son probabilidades, no pronósticos seguros." }));
+  }
+
   function matchRow(m) {
     const showScore = m.state !== "pre";
     const row = (side) => el("div", { class: "t-row" },
@@ -166,6 +190,11 @@
     const matches = (data.matches && data.matches.matches) || [];
     const { live, upcoming, results } = split(matches);
     const up = $("upcoming"), res = $("results");
+    const fc = $("forecast");
+    fc.replaceChildren();
+    const nextLeague = [...live, ...upcoming].find((m) => m.state === "pre" && !m.postponed && (!m.slug || m.slug === "gua.1"));
+    const card = nextLeague && forecastCard(nextLeague);
+    if (card) fc.append(card);
     up.replaceChildren(); res.replaceChildren();
     const coming = [...live, ...upcoming].slice(0, 6);
     if (coming.length) coming.forEach((m) => up.append(matchRow(m)));
@@ -229,6 +258,23 @@
     const c = config.liguilla || {};
     return { rounds: c.regular_rounds || 22, direct: c.direct || 2, qualify: c.qualify || 6 };
   }
+  const pct = (n) => (n == null ? "-" : n > 99 && n < 100 ? ">99%" : n < 1 && n > 0 ? "<1%" : `${Math.round(n)}%`);
+  function renderOdds(od) {
+    const list = od.teams.slice().sort((a, b) => b.p_qualify - a.p_qualify || a.pos - b.pos);
+    const modes = { calendario: "con el calendario de la liga", mixto: "con el calendario de la liga y partidos sin fecha repartidos al azar",
+      aleatorio: "con los partidos que faltan repartidos al azar entre los equipos" };
+    return el("div", { class: "odds" },
+      el("h3", { text: "Probabilidad de clasificar" }),
+      el("p", { class: "legend" },
+        el("span", { class: "lg dir", text: "Directo a semifinales" }),
+        el("span", { class: "lg pre", text: "Clasifica (top 6)" })),
+      el("ol", { class: "odds-list" }, ...list.map((t) => el("li", { class: t.is_municipal ? "me" : null },
+        el("span", { class: "o-team" }, badge({ logo: t.logo, name: t.name }), el("span", { class: "o-name", text: t.name })),
+        el("span", { class: "o-bar", role: "img", "aria-label": `${t.name}: ${pct(t.p_qualify)} de clasificar, ${pct(t.p_direct)} directo` },
+          el("span", { class: "o-q", style: `width:${t.p_qualify}%` }), el("span", { class: "o-d", style: `width:${t.p_direct}%` })),
+        el("span", { class: "o-pct", text: pct(t.p_qualify) })))),
+      el("p", { class: "liga-help", text: `Estimación con ${od.sims.toLocaleString("es-GT")} simulaciones del resto de la fase regular, ${modes[od.fixtures] || ""}. Cada equipo pesa según sus goles a favor y en contra, con ventaja de local. No considera lesiones, refuerzos ni suspensiones, y el desempate es por diferencia de goles. Son probabilidades, no pronósticos.${od.updated ? ` Calculadas ${ago(od.updated)}; se recalculan en cada actualización del sitio.` : ""}` }));
+  }
   const STATUS = {
     direct: "Semifinales asegurada", qualified: "Liguilla asegurada", alive: "En disputa",
     "no-direct": "Sin directo posible", out: "Eliminado", unknown: "",
@@ -249,6 +295,9 @@
       ? `La fase regular del ${name} terminó. Esta es la llave real.`
       : `Así quedaría la liguilla del ${name} si la fase regular terminara hoy. Termina cuando todos hayan jugado ${pr.rounds} partidos: ${pr.minPJ === pr.maxPJ ? `hoy todos van en ${pr.minPJ}` : `hoy van entre ${pr.minPJ} y ${pr.maxPJ}`}, y faltan ${pr.matchesLeft} partidos en total. Es una simulación con la tabla actual y puede cambiar en cada jornada.` }));
     const sum = L.summary(rows, config.team_id, o);
+    const od = data.odds && data.odds.teams && data.odds.teams.length ? data.odds : null;
+    const me = od && od.teams.find((t) => t.is_municipal);
+    if (me && !pr.done) sum.push(`Según la simulación, ${me.name} tiene ${pct(me.p_qualify)} de probabilidad de clasificar a la liguilla y ${pct(me.p_direct)} de pasar directo a semifinales.`);
     if (sum.length) box.append(el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t }))));
 
     // llave interactiva
@@ -264,20 +313,25 @@
       return btn;
     };
     const wrap = el("div", { class: "bracket" });
-    b.rounds.forEach((r) => {
-      const col = el("div", { class: "br-round" }, el("h3", { text: r.name }));
+    b.rounds.forEach((r, ri) => {
+      const list = el("div", { class: "br-ties" });
       r.ties.forEach((t) => {
         // ida en casa del peor ubicado; vuelta en casa del mejor ubicado
-        const note = t.hi && t.lo ? `Ida en casa de ${t.lo.name}. Vuelta en casa de ${t.hi.name}.` : "";
-        col.append(el("div", { class: "tie" }, side(t.hi, t, 0), side(t.lo, t, 1), note ? el("p", { class: "tie-note", text: note }) : null));
+        const note = t.hi && t.lo ? `Ida: ${t.lo.name}. Vuelta: ${t.hi.name}.` : "";
+        list.append(el("div", { class: "tie" }, side(t.hi, t, 0), side(t.lo, t, 1), note ? el("p", { class: "tie-note", text: note }) : null));
       });
-      wrap.append(col);
+      wrap.append(el("div", { class: `br-round r${ri}` }, el("h3", { text: r.name }), list));
     });
-    box.append(wrap);
-    if (b.champion) box.append(el("p", { class: "champ", text: `Campeón en esta simulación: ${b.champion.name}` }));
+    wrap.append(el("div", { class: "br-round r3" }, el("h3", { text: "Campeón" }),
+      el("div", { class: "br-ties" }, el("div", { class: `trophy${b.champion ? " has" : ""}` },
+        b.champion ? [badge({ logo: b.champion.logo, name: b.champion.name }), el("strong", { text: b.champion.name })] : el("span", { text: "Por definir" })))));
+    box.append(el("p", { class: "br-hint", text: "Desliza para ver toda la llave →" }));
+    box.append(el("div", { class: "bracket-wrap", tabindex: "0", role: "group", "aria-label": "Llave de la liguilla" }, wrap));
     box.append(el("p", { class: "liga-help", text: "Toca un equipo para avanzarlo en la llave y ver cómo se arma el camino al título." }),
       Object.keys(ligaPicks).some((k) => ligaPicks[k] != null)
         ? el("button", { type: "button", class: "btn small", text: "Reiniciar llave", onclick: () => { ligaPicks = {}; renderLiguilla(); } }) : null);
+
+    if (od && !pr.done) box.append(renderOdds(od));
 
     // situación de cada equipo
     const st = L.situation(rows, o);
@@ -581,6 +635,8 @@
       statsBlock(m, detail.stats || []),
       lineupsBlock(m, detail.lineups || []),
     ].filter(Boolean) : [];
+    const fcard = forecastCard(m);
+    if (fcard) parts.unshift(fcard);
     if (parts.length) body.append(...parts);
     else body.append(el("p", { class: "empty", text: m.state === "pre" ? "Las alineaciones y estadísticas aparecen cuando empieza el partido." : "ESPN todavía no publica el detalle de este partido." }));
     const share = el("button", { class: "btn btn-ghost", type: "button", text: "Compartir este partido" });
@@ -707,6 +763,7 @@
     if (meta && meta.updated) {
       const bad = Object.entries(meta.sources || {}).filter(([, v]) => v !== "ok").map(([k]) => k);
       p.textContent = `Actualizado ${ago(meta.updated)}, con datos de ESPN, buscadores de noticias y medios guatemaltecos.` +
+        (data.liveAt ? ` Tabla y marcadores al día con ESPN ${ago(data.liveAt)}.` : "") +
         (bad.length ? ` Sin respuesta en la última actualización: ${bad.join(", ")}.` : "");
     }
   }
@@ -718,17 +775,53 @@
     const m = (data.matches.matches || []).find((x) => x.start === box.dataset.next);
     if (m) c.textContent = countdown(m);
   }
+  const LIVE_SLUGS = ["gua.1", "concacaf.central.american.cup", "concacaf.champions"];
+  async function fetchLive(url, ms = 8000) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+    try {
+      const r = await fetch(url, { signal: ctl.signal, cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } finally { clearTimeout(t); }
+  }
+  /** Pone la tabla y los marcadores al día con ESPN. Si falla, no pasa nada: quedan los datos publicados. */
+  async function liveRefresh() {
+    const LV = window.MuniLive;
+    if (!LV) return false;
+    const [st, ...boards] = await Promise.allSettled([fetchLive(LV.standingsUrl("gua.1")),
+      ...LIVE_SLUGS.map((s) => fetchLive(LV.scoreboardUrl(s, Date.now())))]);
+    let changed = false;
+    if (st.status === "fulfilled") {
+      try {
+        const groups = LV.chooseStandings(LV.parseStandings(st.value, config.team_id, config.team), data.standings);
+        if (groups) { data.standings = { groups, stale: false, live: true }; changed = true; }
+      } catch (_) { /* formato inesperado: se ignora */ }
+    }
+    const board = {};
+    boards.forEach((b) => { if (b.status === "fulfilled") { try { Object.assign(board, LV.parseScoreboard(b.value)); } catch (_) { /* ignorar */ } } });
+    if (data.matches && Object.keys(board).length) {
+      const r = LV.mergeMatches(data.matches.matches, board, config.team_id, config.team);
+      if (r.changed) { data.matches = { ...data.matches, matches: r.matches }; changed = true; }
+    }
+    data.liveAt = changed || data.liveAt ? new Date().toISOString() : null;
+    return changed;
+  }
+  function renderAll() {
+    if (data.matches) { renderBoard(); renderMatches(); }
+    renderStandings(); renderLiguilla(); renderPerformance(); renderPlayers(); renderNews(); renderFooter();
+  }
+  let loaded = false;
   async function load() {
-    const names = ["matches", "standings", "news", "meta", "players"];
+    const names = ["matches", "standings", "news", "meta", "players", "odds"];
     const res = await Promise.allSettled(names.map(getJson));
     names.forEach((n, i) => { if (res[i].status === "fulfilled") data[n] = res[i].value; });
     if (res[0].status === "rejected" && !data.matches) {
       $("board").replaceChildren(el("p", { class: "board-msg", text: "No se pudieron cargar los partidos. Recarga la página en unos minutos." }));
-    } else {
-      renderBoard(); renderMatches();
     }
-    renderStandings(); renderLiguilla(); renderPerformance(); renderPlayers(); renderNews(); renderFooter();
+    if (loaded) await liveRefresh(); // ya hay datos en pantalla: se actualiza todo junto, sin parpadeo
+    renderAll();
     schedule();
+    if (!loaded) { loaded = true; if (await liveRefresh()) { renderAll(); if ($("home").hidden) route(); } }
   }
   function schedule() {
     clearTimeout(timer);
@@ -740,6 +833,9 @@
     try { config = await (await fetch("config.json", { cache: "no-store" })).json(); } catch (_) { config = {}; }
     config.team = config.team || "Municipal";
     config.team_id = config.team_id || "7258";
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      navigator.serviceWorker.register("sw.js").catch(() => { /* sin soporte: el sitio funciona igual */ });
+    }
     renderSubscribe();
     renderSocial();
     await load();
