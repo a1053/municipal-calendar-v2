@@ -348,3 +348,19 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .team .sit { display: block; font-weight: 400; opacity: .75; }
 .team > span { text-align: left; }
 .trophy .badge { background: var(--rojo); color: #fff; width: 40px; height: 40px; }
+
+.odds { margin: 1.2rem 0; }
+.odds-list { list-style: none; margin: .5rem 0; padding: 0; display: grid; gap: 4px; }
+.odds-list li { display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr) 3rem; gap: 10px; align-items: center; padding: 3px 6px; border-radius: 6px; }
+.odds-list li.me { background: rgba(208,28,36,.12); font-weight: 700; }
+.o-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.o-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.o-bar { position: relative; height: 12px; border-radius: 6px; background: rgba(128,128,128,.2); overflow: hidden; }
+.o-bar span { position: absolute; left: 0; top: 0; bottom: 0; }
+.o-q { background: #8a8f98; }
+.o-d { background: var(--led); }
+.odds-list li.me .o-q { background: #b9565b; }
+.o-pct { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+@media (max-width: 440px) { .odds-list li { grid-template-columns: minmax(0, 8.6rem) minmax(0, 1fr) 2.8rem; gap: 6px; } .o-team .badge { display: none; } }
+.o-team .badge { width: 24px; height: 24px; flex: none; font-size: .62rem; background: var(--rojo); color: #fff; }
+.o-team .badge img { background: #fff; border-radius: 50%; }

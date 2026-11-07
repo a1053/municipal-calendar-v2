@@ -229,6 +229,23 @@
     const c = config.liguilla || {};
     return { rounds: c.regular_rounds || 22, direct: c.direct || 2, qualify: c.qualify || 6 };
   }
+  const pct = (n) => (n == null ? "-" : n > 99 && n < 100 ? ">99%" : n < 1 && n > 0 ? "<1%" : `${Math.round(n)}%`);
+  function renderOdds(od) {
+    const list = od.teams.slice().sort((a, b) => b.p_qualify - a.p_qualify || a.pos - b.pos);
+    const modes = { calendario: "con el calendario de la liga", mixto: "con el calendario de la liga y partidos sin fecha repartidos al azar",
+      aleatorio: "con los partidos que faltan repartidos al azar entre los equipos" };
+    return el("div", { class: "odds" },
+      el("h3", { text: "Probabilidad de clasificar" }),
+      el("p", { class: "legend" },
+        el("span", { class: "lg dir", text: "Directo a semifinales" }),
+        el("span", { class: "lg pre", text: "Clasifica (top 6)" })),
+      el("ol", { class: "odds-list" }, ...list.map((t) => el("li", { class: t.is_municipal ? "me" : null },
+        el("span", { class: "o-team" }, badge({ logo: t.logo, name: t.name }), el("span", { class: "o-name", text: t.name })),
+        el("span", { class: "o-bar", role: "img", "aria-label": `${t.name}: ${pct(t.p_qualify)} de clasificar, ${pct(t.p_direct)} directo` },
+          el("span", { class: "o-q", style: `width:${t.p_qualify}%` }), el("span", { class: "o-d", style: `width:${t.p_direct}%` })),
+        el("span", { class: "o-pct", text: pct(t.p_qualify) })))),
+      el("p", { class: "liga-help", text: `Estimación con ${od.sims.toLocaleString("es-GT")} simulaciones del resto de la fase regular, ${modes[od.fixtures] || ""}. Cada equipo pesa según sus goles a favor y en contra, con ventaja de local. No considera lesiones, refuerzos ni suspensiones, y el desempate es por diferencia de goles. Son probabilidades, no pronósticos.` }));
+  }
   const STATUS = {
     direct: "Semifinales asegurada", qualified: "Liguilla asegurada", alive: "En disputa",
     "no-direct": "Sin directo posible", out: "Eliminado", unknown: "",
@@ -249,6 +266,9 @@
       ? `La fase regular del ${name} terminó. Esta es la llave real.`
       : `Así quedaría la liguilla del ${name} si la fase regular terminara hoy. Termina cuando todos hayan jugado ${pr.rounds} partidos: ${pr.minPJ === pr.maxPJ ? `hoy todos van en ${pr.minPJ}` : `hoy van entre ${pr.minPJ} y ${pr.maxPJ}`}, y faltan ${pr.matchesLeft} partidos en total. Es una simulación con la tabla actual y puede cambiar en cada jornada.` }));
     const sum = L.summary(rows, config.team_id, o);
+    const od = data.odds && data.odds.teams && data.odds.teams.length ? data.odds : null;
+    const me = od && od.teams.find((t) => t.is_municipal);
+    if (me && !pr.done) sum.push(`Según la simulación, ${me.name} tiene ${pct(me.p_qualify)} de probabilidad de clasificar a la liguilla y ${pct(me.p_direct)} de pasar directo a semifinales.`);
     if (sum.length) box.append(el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t }))));
 
     // llave interactiva
@@ -281,6 +301,8 @@
     box.append(el("p", { class: "liga-help", text: "Toca un equipo para avanzarlo en la llave y ver cómo se arma el camino al título." }),
       Object.keys(ligaPicks).some((k) => ligaPicks[k] != null)
         ? el("button", { type: "button", class: "btn small", text: "Reiniciar llave", onclick: () => { ligaPicks = {}; renderLiguilla(); } }) : null);
+
+    if (od && !pr.done) box.append(renderOdds(od));
 
     // situación de cada equipo
     const st = L.situation(rows, o);
@@ -722,7 +744,7 @@
     if (m) c.textContent = countdown(m);
   }
   async function load() {
-    const names = ["matches", "standings", "news", "meta", "players"];
+    const names = ["matches", "standings", "news", "meta", "players", "odds"];
     const res = await Promise.allSettled(names.map(getJson));
     names.forEach((n, i) => { if (res[i].status === "fulfilled") data[n] = res[i].value; });
     if (res[0].status === "rejected" && !data.matches) {
