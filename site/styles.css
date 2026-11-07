@@ -364,3 +364,17 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 @media (max-width: 440px) { .odds-list li { grid-template-columns: minmax(0, 8.6rem) minmax(0, 1fr) 2.8rem; gap: 6px; } .o-team .badge { display: none; } }
 .o-team .badge { width: 24px; height: 24px; flex: none; font-size: .62rem; background: var(--rojo); color: #fff; }
 .o-team .badge img { background: #fff; border-radius: 50%; }
+
+.forecast { margin: 0 0 1.2rem; padding: .8rem; border: 1px solid rgba(128,128,128,.35); border-radius: 10px; }
+.forecast h3 { margin: 0 0 .5rem; }
+.fc-nums { display: flex; justify-content: space-between; gap: .5rem; font-size: .8rem; margin-bottom: .4rem; }
+.fc-nums span { display: grid; gap: 1px; }
+.fc-nums span:nth-child(2) { text-align: center; }
+.fc-nums span:last-child { text-align: right; }
+.fc-nums strong { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.fc-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: rgba(128,128,128,.2); }
+.fc-bar .w, .fc-bar .l { background: #5b6068; }
+.fc-bar .me { background: var(--rojo); }
+.fc-bar .d { background: #b8bcc4; }
+.fc-scores { margin: .6rem 0 0; font-size: .85rem; }
+.chip-s { display: inline-block; margin: 0 .3rem .2rem 0; padding: .1rem .5rem; border-radius: 99px; background: rgba(128,128,128,.2); font-variant-numeric: tabular-nums; }

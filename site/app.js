@@ -146,6 +146,30 @@
     box.dataset.next = next ? next.start : "";
   }
 
+  function forecastCard(m) {
+    const F = window.MuniForecast;
+    const g = data.standings && data.standings.groups && data.standings.groups[0];
+    if (!F || !g || !m || m.state !== "pre" || m.postponed || (m.slug && m.slug !== "gua.1")) return null;
+    const f = F.forecast(g.rows, m.home.id, m.away.id);
+    if (!f) return null;
+    const r0 = (n) => `${Math.round(n)}%`;
+    const bar = el("div", { class: "fc-bar", role: "img",
+      "aria-label": `${m.home.name} ${r0(f.pHome)}, empate ${r0(f.pDraw)}, ${m.away.name} ${r0(f.pAway)}` },
+      el("span", { class: isMe(m.home) ? "w me" : "w", style: `width:${f.pHome}%` }),
+      el("span", { class: "d", style: `width:${f.pDraw}%` }),
+      el("span", { class: isMe(m.away) ? "l me" : "l", style: `width:${f.pAway}%` }));
+    return el("div", { class: "forecast" },
+      el("h3", { text: "Pronóstico del partido" }),
+      el("div", { class: "fc-nums" },
+        el("span", null, el("strong", { text: r0(f.pHome) }), ` gana ${m.home.name}`),
+        el("span", null, el("strong", { text: r0(f.pDraw) }), " empate"),
+        el("span", null, el("strong", { text: r0(f.pAway) }), ` gana ${m.away.name}`)),
+      bar,
+      el("p", { class: "fc-scores" }, "Marcadores más probables: ",
+        ...f.topScores.map((s) => el("span", { class: "chip-s", text: `${s.home}-${s.away} (${r0(s.p)})` }))),
+      el("p", { class: "liga-help", text: "Estimación con los goles a favor y en contra de cada equipo en el torneo y ventaja de local. No considera lesiones ni alineaciones. Son probabilidades, no pronósticos seguros." }));
+  }
+
   function matchRow(m) {
     const showScore = m.state !== "pre";
     const row = (side) => el("div", { class: "t-row" },
@@ -166,6 +190,11 @@
     const matches = (data.matches && data.matches.matches) || [];
     const { live, upcoming, results } = split(matches);
     const up = $("upcoming"), res = $("results");
+    const fc = $("forecast");
+    fc.replaceChildren();
+    const nextLeague = [...live, ...upcoming].find((m) => m.state === "pre" && !m.postponed && (!m.slug || m.slug === "gua.1"));
+    const card = nextLeague && forecastCard(nextLeague);
+    if (card) fc.append(card);
     up.replaceChildren(); res.replaceChildren();
     const coming = [...live, ...upcoming].slice(0, 6);
     if (coming.length) coming.forEach((m) => up.append(matchRow(m)));
@@ -606,6 +635,8 @@
       statsBlock(m, detail.stats || []),
       lineupsBlock(m, detail.lineups || []),
     ].filter(Boolean) : [];
+    const fcard = forecastCard(m);
+    if (fcard) parts.unshift(fcard);
     if (parts.length) body.append(...parts);
     else body.append(el("p", { class: "empty", text: m.state === "pre" ? "Las alineaciones y estadísticas aparecen cuando empieza el partido." : "ESPN todavía no publica el detalle de este partido." }));
     const share = el("button", { class: "btn btn-ghost", type: "button", text: "Compartir este partido" });
@@ -765,6 +796,9 @@
     try { config = await (await fetch("config.json", { cache: "no-store" })).json(); } catch (_) { config = {}; }
     config.team = config.team || "Municipal";
     config.team_id = config.team_id || "7258";
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      navigator.serviceWorker.register("sw.js").catch(() => { /* sin soporte: el sitio funciona igual */ });
+    }
     renderSubscribe();
     renderSocial();
     await load();

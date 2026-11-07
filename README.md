@@ -132,3 +132,11 @@ La sección **Liguilla** arma la llave del Apertura con la tabla actual: 1.º y 
 ### Probabilidades de clasificar
 
 `scripts/odds.py` simula miles de veces lo que falta de la fase regular y cuenta cuántas veces cada equipo termina entre los 6 primeros (y entre los 2 primeros). Cada equipo pesa según sus goles a favor y en contra (mezclados con el promedio de la liga mientras haya pocos partidos), con ventaja de local y goles Poisson. Los partidos que faltan salen del calendario de la liga en ESPN; los que no tienen fecha, como los aplazados, se reparten al azar entre los equipos a los que les falten. El desempate supuesto es diferencia de goles y luego goles a favor. Resultado en `data/odds.json`; pruebas en `tests/test_odds.py`. Es una estimación: no considera lesiones, refuerzos ni suspensiones.
+
+## Pronóstico del partido
+
+`site/forecast.js` calcula, para el próximo partido de liga, el porcentaje de victoria, empate y derrota y los marcadores más probables. Usa el mismo modelo que las probabilidades de la liguilla (goles a favor y en contra, ventaja de local, Poisson). Aparece en Partidos y en la página de cada partido que aún no empieza. Pruebas: `tests/forecast.test.js`.
+
+## Instalar como app
+
+El sitio se puede instalar en el celular ("Agregar a pantalla de inicio" o "Instalar app"). Incluye `manifest.webmanifest`, íconos en `site/icons/` (se regeneran con `python scripts/make_icons.py`) y `site/sw.js`, que pide todo primero a internet y, si no hay conexión, muestra lo último que se vio. El ícono es una "M", no el escudo del club.
