@@ -175,3 +175,28 @@ def build_odds(rows: list[dict], scoreboard: dict | None, rounds: int = 22, qual
     res.update({"fixtures": mode, "fixtures_total": len(fixtures), "fixtures_known": len(known),
                 "regular_rounds": rounds, "qualify": qualify, "direct": direct})
     return res
+
+
+HISTORY_LIMIT = 800
+
+
+def update_history(prev: dict | None, odds: dict | None, stamp: str) -> dict | None:
+    """Agrega a la historia la foto actual de Municipal (posición, puntos y probabilidades).
+
+    Si la posición, los puntos y los partidos jugados no cambiaron desde la última foto, se
+    reemplaza esa foto (queda la probabilidad más reciente) en vez de acumular una por corrida.
+    Sin probabilidades nuevas devuelve la historia anterior tal cual.
+    """
+    entries = list((prev or {}).get("entries") or [])
+    me = next((t for t in ((odds or {}).get("teams") or []) if t.get("is_municipal")), None)
+    if me and not (odds or {}).get("stale"):
+        snap = {"t": stamp, "pj": me["pj"], "pts": me["pts"], "pos": me["pos"],
+                "p_qualify": me["p_qualify"], "p_direct": me["p_direct"]}
+        same = entries and all(entries[-1].get(k) == snap[k] for k in ("pj", "pts", "pos"))
+        if same:
+            entries[-1] = snap
+        else:
+            entries.append(snap)
+    if not entries:
+        return None
+    return {"updated": stamp, "entries": entries[-HISTORY_LIMIT:]}

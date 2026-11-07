@@ -426,6 +426,8 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
             odds["stale"] = bool(standings.get("stale"))
         sources["odds"] = "ok" if odds else "error"
 
+    history = odds_model.update_history(_previous(prev_dir, "history.json"), odds, stamp)
+
     out_dir.mkdir(parents=True, exist_ok=True)
     details = build_details(matches, standings, out_dir, now, sources)
     players = sd.build_players(details, cal.TEAM_ID)
@@ -446,6 +448,7 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
         "players.json": {"updated": stamp, "players": players},
         "news.json": news,
         **({"odds.json": odds} if odds else {}),
+        **({"history.json": history} if history else {}),
         "meta.json": {"updated": stamp, "sources": sources},
     }
     for name, payload in files.items():

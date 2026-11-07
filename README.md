@@ -144,3 +144,7 @@ El sitio se puede instalar en el celular ("Agregar a pantalla de inicio" o "Inst
 ## Datos en vivo desde el navegador
 
 GitHub retrasa las corridas programadas (a veces horas), así que `site/live.js` pone la tabla y los marcadores al día directamente con ESPN cada vez que se abre o refresca la página (cada 3 minutos, o 45 segundos con partido en vivo). Si ESPN no responde o cambia su formato, el sitio muestra los datos de la última corrida. Las probabilidades de la liguilla se siguen calculando en cada corrida del sitio y la página indica cuándo. Pruebas: `tests/live.test.js`.
+
+## Carrera a la liguilla
+
+En cada corrida el sitio guarda una foto de Municipal (posición, puntos, partidos jugados y probabilidades de clasificar y de pasar directo) en `data/history.json`. Para que la historia sobreviva entre publicaciones, el flujo descarga el `history.json` ya publicado antes de construir. La gráfica de la sección Liguilla dibuja esa historia; arranca vacía y se llena con el tiempo. Si la posición, los puntos y los partidos no cambian, se reemplaza la última foto en vez de acumular una por corrida (máximo 800). Pruebas en `tests/test_odds.py`.
