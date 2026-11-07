@@ -81,4 +81,20 @@ assert.ok(!t3.includes("sin perder"), t3);
 const unb = [{ res: "E", home: true, gf: 1, gc: 1 }, { res: "G", home: true, gf: 1, gc: 0 }, { res: "E", home: true, gf: 0, gc: 0 }];
 assert.ok(S.narrative({ team: "M", scope: { all: true }, stats: S.summarize(unb), next: [], fmt }).join(" ").includes("Lleva 3 partidos sin perder."));
 
+
+// récords y rachas más largas
+{
+  const mk = (id, start, home, gf, gc, vs) => ({ id, start, home, vs, gf, gc, res: gf > gc ? "G" : gf < gc ? "P" : "E" });
+  const list = [mk("1", "2026-08-01", true, 1, 0, "A"), mk("2", "2026-08-08", false, 3, 0, "B"), mk("3", "2026-08-15", true, 2, 2, "C"),
+    mk("4", "2026-08-22", false, 0, 4, "D"), mk("5", "2026-08-29", true, 1, 3, "E"), mk("6", "2026-09-05", true, 4, 1, "F")];
+  const r = S.records(list);
+  assert.strictEqual(r.bestWin.id, "6");           // 4-1 y 3-0 son +3: gana el de más goles a favor
+  assert.strictEqual(r.worstLoss.vs, "D");
+  assert.strictEqual(r.mostGoals.vs, "F");         // 4-1 suma 5 goles, más que el 0-4
+  assert.strictEqual(r.longestWin, 2);
+  assert.strictEqual(r.longestUnbeaten, 3);
+  assert.strictEqual(r.longestLoss, 2);
+  assert.strictEqual(S.records([]), null);
+  assert.strictEqual(S.records([mk("9", "2026-09-01", true, 0, 0, "Z")]).bestWin, null);
+}
 console.log("stats.test.js: OK");

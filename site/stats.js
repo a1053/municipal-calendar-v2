@@ -48,6 +48,27 @@
     };
   }
 
+  /** Mejores y peores marcas de la lista de partidos jugados (del más viejo al más nuevo). */
+  function records(list) {
+    if (!list || !list.length) return null;
+    const pick = (better) => list.reduce((best, x) => (best === null || better(x, best) ? x : best), null);
+    const brief = (x) => (x ? { gf: x.gf, gc: x.gc, vs: x.vs, home: x.home, start: x.start, id: x.id } : null);
+    const wins = list.filter((x) => x.res === "G"), losses = list.filter((x) => x.res === "P");
+    const longest = (ok) => {
+      let best = 0, cur = 0;
+      for (const x of list) { cur = ok(x.res) ? cur + 1 : 0; if (cur > best) best = cur; }
+      return best;
+    };
+    return {
+      bestWin: brief(wins.length ? wins.reduce((b, x) => (x.gf - x.gc > b.gf - b.gc || (x.gf - x.gc === b.gf - b.gc && x.gf > b.gf) ? x : b)) : null),
+      worstLoss: brief(losses.length ? losses.reduce((b, x) => (x.gc - x.gf > b.gc - b.gf || (x.gc - x.gf === b.gc - b.gf && x.gc > b.gc) ? x : b)) : null),
+      mostGoals: brief(pick((x, b) => x.gf + x.gc > b.gf + b.gc)),
+      longestWin: longest((r) => r === "G"),
+      longestUnbeaten: longest((r) => r !== "P"),
+      longestLoss: longest((r) => r === "P"),
+    };
+  }
+
   /** Próximos partidos (hasta n), con indicador de local/visitante. */
   function nextMatches(matches, nowMs, teamId, teamName, n) {
     return (matches || [])
@@ -108,7 +129,7 @@
     return out;
   }
 
-  const api = { played, summarize, nextMatches, narrative, ordinal: ord, plural: pl };
+  const api = { played, summarize, records, nextMatches, narrative, ordinal: ord, plural: pl };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.MuniStats = api;
 })(typeof window !== "undefined" ? window : globalThis);

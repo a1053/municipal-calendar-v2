@@ -427,3 +427,23 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   .std.need th:first-child, .std.need td:first-child { width: 2rem; min-width: 2rem; }
   .std.need th:nth-child(2), .std.need td:nth-child(2) { left: 2rem; }
 }
+
+/* ---- alineación en cancha ---- */
+.pitch { position: relative; width: 100%; max-width: 420px; aspect-ratio: 3 / 4; margin: .6rem 0; border-radius: 10px; overflow: hidden;
+  background: repeating-linear-gradient(180deg, #2e7d46 0 12.5%, #34864d 12.5% 25%); border: 2px solid rgba(255,255,255,.7); }
+.pitch .pl-mid { position: absolute; left: 0; right: 0; top: 50%; border-top: 2px solid rgba(255,255,255,.55); }
+.pitch .pl-mid::after { content: ""; position: absolute; left: 50%; top: -28px; width: 56px; height: 56px; margin-left: -28px; border: 2px solid rgba(255,255,255,.55); border-radius: 50%; }
+.pitch .pl-box { position: absolute; left: 25%; right: 25%; height: 15%; border: 2px solid rgba(255,255,255,.55); }
+.pitch .pl-box.box-t { top: -2px; border-top: 0; } .pitch .pl-box.box-b { bottom: -2px; border-bottom: 0; }
+.pl { position: absolute; transform: translate(-50%, 50%); display: grid; justify-items: center; gap: 2px; width: 22%; }
+.pl-dot { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #2b2f36; color: #fff; font-weight: 800; font-size: .8rem; border: 2px solid #fff; }
+.pitch.me .pl-dot { background: var(--rojo); }
+.pl-name { max-width: 100%; padding: 0 4px; border-radius: 4px; background: rgba(0,0,0,.55); color: #fff; font-size: .68rem; line-height: 1.25; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.records { list-style: none; margin: .4rem 0 1rem; padding: 0; display: grid; }
+.records li { display: flex; justify-content: space-between; gap: .75rem; padding: .45rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+.records .rk { color: var(--muted); }
+.records .rv { text-align: right; font-weight: 700; }
+.records .rv a { color: inherit; }
+.btn-wa { background: #1f9d55; border-color: #1f9d55; color: #fff; }
+.btn-wa:hover { filter: brightness(1.08); }

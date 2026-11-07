@@ -91,6 +91,13 @@ def parse_events(obj: dict) -> list[dict]:
     return out
 
 
+def _int(v) -> int:
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return 0
+
+
 def parse_lineups(obj: dict) -> list[dict]:
     out = []
     for r in (obj or {}).get("rosters") or []:
@@ -105,6 +112,7 @@ def parse_lineups(obj: dict) -> list[dict]:
                 "jersey": str(p.get("jersey") or (p.get("athlete") or {}).get("jersey") or ""),
                 "pos": ((p.get("position") or {}).get("abbreviation")) or "",
                 "starter": bool(p.get("starter")),
+                "place": _int(p.get("formationPlace")),
                 "played": bool(p.get("starter")) or _truthy_sub(p.get("subbedIn")),
             })
         if not players:

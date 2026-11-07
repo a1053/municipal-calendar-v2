@@ -252,6 +252,12 @@
     box.append(el("p", { class: "legend" },
       el("span", { class: "lg dir", text: "1.º y 2.º: directo a semifinales" }),
       el("span", { class: "lg pre", text: "3.º al 6.º: ronda previa" })));
+    const g0 = data.standings && data.standings.groups && data.standings.groups[0];
+    if (window.MuniShare && g0 && g0.rows.length) {
+      const lg = ligaOpts();
+      box.append(el("p", { class: "actions" }, waButton(window.MuniShare.tableText(g0.rows, {
+        qualify: lg.qualify, tournament: (config.liguilla && config.liguilla.tournament) || "", url: siteUrl() + "#tabla" }), "Compartir la tabla por WhatsApp")));
+    }
   }
 
   // ---------- liguilla ----------
@@ -259,6 +265,12 @@
   function ligaOpts() {
     const c = config.liguilla || {};
     return { rounds: c.regular_rounds || 22, direct: c.direct || 2, qualify: c.qualify || 6 };
+  }
+  const siteUrl = () => location.origin + location.pathname;
+  function waButton(text, label) {
+    const SH = window.MuniShare;
+    if (!SH) return null;
+    return el("a", { class: "btn btn-wa", href: SH.whatsappUrl(text), target: "_blank", rel: "noopener noreferrer", text: label || "Compartir por WhatsApp" });
   }
   const pct = (n) => (n == null ? "-" : n > 99 && n < 100 ? ">99%" : n < 1 && n > 0 ? "<1%" : `${Math.round(n)}%`);
   function renderOdds(od) {
@@ -403,7 +415,9 @@
     const od = data.odds && data.odds.teams && data.odds.teams.length ? data.odds : null;
     const me = od && od.teams.find((t) => t.is_municipal);
     if (me && !pr.done) sum.push(`Según la simulación, ${me.name} tiene ${pct(me.p_qualify)} de probabilidad de clasificar a la liguilla y ${pct(me.p_direct)} de pasar directo a semifinales.`);
-    if (sum.length) box.append(el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t }))));
+    const shareLiga = window.MuniShare && sum.length ? el("p", { class: "actions" }, waButton(window.MuniShare.ligaText(sum, me, {
+      tournament: (config.liguilla && config.liguilla.tournament) || "", url: siteUrl() + "#liguilla" }), "Compartir la liguilla por WhatsApp")) : null;
+    if (sum.length) box.append(el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t }))), shareLiga);
 
     // llave interactiva
     const b = L.bracket(rows, ligaPicks, o);
@@ -591,6 +605,23 @@
             .map(([t, title]) => el("th", { scope: "col", text: t, title })))),
         el("tbody", null, row("Local", stats.home), row("Visitante", stats.away)))));
 
+    const rec = S.records(list);
+    if (rec) {
+      const game = (x) => x ? el("a", { href: `#/partido/${x.id}`, text: `${x.home ? "Municipal" : x.vs} ${x.home ? `${x.gf}-${x.gc} ${x.vs}` : `${x.gc}-${x.gf} Municipal`}` }) : "-";
+      const row2 = (k, v) => el("li", null, el("span", { class: "rk", text: k }), el("span", { class: "rv" }, v));
+      const seq = (n, one, many) => (n ? `${n} ${n === 1 ? one : many}` : "-");
+      box.append(el("h3", { text: "Rachas y récords" }),
+        el("ul", { class: "records" },
+          row2("Mayor victoria", game(rec.bestWin)),
+          row2("Peor derrota", game(rec.worstLoss)),
+          row2("Partido con más goles", game(rec.mostGoals)),
+          row2("Racha actual", stats.streak.win ? seq(stats.streak.win, "victoria seguida", "victorias seguidas")
+            : stats.streak.unbeaten ? seq(stats.streak.unbeaten, "partido sin perder", "partidos sin perder") : seq(stats.streak.loss, "derrota seguida", "derrotas seguidas")),
+          row2("Más victorias seguidas", seq(rec.longestWin, "victoria", "victorias")),
+          row2("Más partidos sin perder", seq(rec.longestUnbeaten, "partido", "partidos")),
+          row2("Más derrotas seguidas", seq(rec.longestLoss, "derrota", "derrotas"))));
+    }
+
     box.append(el("h3", { text: "Resultados de la temporada" }),
       el("div", { class: "chips" }, ...list.map((x) =>
         el("span", { class: `chip ${x.res}`, text: x.res,
@@ -722,15 +753,38 @@
       })));
   }
 
+  function pitchView(lu, mine) {
+    const P = window.MuniPitch;
+    const rows = P && P.layout(lu.formation, lu.players);
+    if (!rows) return null;
+    const n = rows.length;
+    const pitch = el("div", { class: `pitch${mine ? " me" : ""}`, role: "group",
+      "aria-label": `Alineación de ${lu.team}, formación ${lu.formation}` },
+      el("span", { class: "pl-box box-t" }), el("span", { class: "pl-box box-b" }), el("span", { class: "pl-mid" }));
+    rows.forEach((row, ri) => {
+      const bottom = 8 + ri * (84 / (n - 1));
+      row.forEach((p, ci) => {
+        const dot = el("div", { class: "pl", style: `left:${((ci + 0.5) / row.length) * 100}%;bottom:${bottom}%` },
+          el("span", { class: "pl-dot", text: p.jersey || "" }),
+          el("span", { class: "pl-name", text: P.shortName(p.name) }));
+        pitch.append(dot);
+      });
+    });
+    return pitch;
+  }
+
   function lineupsBlock(m, lineups) {
     if (!lineups.length) return null;
     const ordered = [...lineups].sort((a, b) => (a.team_id === m.home.id ? -1 : 1) - (b.team_id === m.home.id ? -1 : 1));
     return section("Alineaciones", el("div", { class: "lineups" }, ...ordered.map((lu) => {
       const li = (p) => el("li", null, el("span", { class: "jersey", text: p.jersey || "" }), el("span", { class: "pname", text: p.name }), p.pos ? el("span", { class: "ppos", text: p.pos }) : null);
       const bench = lu.players.filter((p) => !p.starter);
+      const pitch = pitchView(lu, isMe({ id: lu.team_id, name: lu.team }));
+      const starters = el("ul", { class: "plain" }, ...lu.players.filter((p) => p.starter).map(li));
       return el("div", { class: "lu" },
         el("h3", { text: lu.team + (lu.formation ? ` (${lu.formation})` : "") }),
-        el("ul", { class: "plain" }, ...lu.players.filter((p) => p.starter).map(li)),
+        pitch,
+        pitch ? el("details", null, el("summary", { text: "Ver la lista de titulares" }), starters) : starters,
         bench.length ? el("details", null, el("summary", { text: `Suplentes (${bench.length})` }), el("ul", { class: "plain" }, ...bench.map(li))) : null);
     })));
   }
@@ -772,7 +826,9 @@
       } catch (_) { /* el usuario canceló */ }
     });
     body.append(el("p", { class: "actions" },
-      el("a", { class: "btn", href: safeUrl(m.url), target: "_blank", rel: "noopener", text: "Ver este partido en ESPN" }), share));
+      el("a", { class: "btn", href: safeUrl(m.url), target: "_blank", rel: "noopener", text: "Ver este partido en ESPN" }), share,
+      window.MuniShare ? waButton(window.MuniShare.matchText(m, { competition: compLabel(m.competition), url: location.href,
+        when: m.start ? `${dayLong(m.start)}, ${timeOf(m.start)}` : "" })) : null));
   }
 
   function route() {
@@ -797,11 +853,25 @@
 
   // ---------- noticias ----------
   let newsShown = 12;
+  let newsTopic = "all";
   function renderNews() {
     const list = $("news-list"), more = $("news-more");
     list.replaceChildren();
     more.replaceChildren();
-    const items = (data.news && data.news[newsFeed]) || [];
+    const all = (data.news && data.news[newsFeed]) || [];
+    const T = window.MuniTopics;
+    const topicsBox = $("news-topics");
+    topicsBox.replaceChildren();
+    if (T && all.length) {
+      const counts = T.counts(all);
+      if (newsTopic !== "all" && !counts[newsTopic]) newsTopic = "all";
+      if (T.TOPICS.some((t) => counts[t.key])) {
+        topicsBox.append(filterBar("Tema", [{ key: "all", label: "Todas" },
+          ...T.TOPICS.filter((t) => counts[t.key]).map((t) => ({ key: t.key, label: `${t.label} (${counts[t.key]})` }))],
+          newsTopic, (k) => { newsTopic = k; newsShown = 12; renderNews(); restoreFocus(); }));
+      }
+    }
+    const items = T ? T.filter(all, newsTopic) : all;
     if (!items.length) {
       list.append(el("li", { class: "empty", text: "No hay noticias por ahora." }));
       return;
@@ -821,10 +891,12 @@
       more.append(b);
     }
   }
-  document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+  const feedTabs = document.querySelectorAll('.seg[role="tablist"] button');
+  feedTabs.forEach((b) => b.addEventListener("click", () => {
     newsFeed = b.dataset.feed;
     newsShown = 12;
-    document.querySelectorAll(".seg button").forEach((x) => {
+    newsTopic = "all";
+    feedTabs.forEach((x) => {
       x.setAttribute("aria-selected", String(x === b));
       x.tabIndex = x === b ? 0 : -1;
     });
