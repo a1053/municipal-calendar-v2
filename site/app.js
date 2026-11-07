@@ -442,9 +442,13 @@
 
     // situación de cada equipo
     const st = L.situation(rows, o);
+    const oddsOf = Object.fromEntries(((data.odds && data.odds.teams) || []).map((t) => [t.team_id, t]));
+    const hasOdds = Object.keys(oddsOf).length > 0 && !pr.done;
     const th = (text, title) => el("th", { scope: "col", text, title: title || null });
     const head = el("tr", null, th("#"), th("Equipo"), th("Pts"), th("PJ", "Partidos jugados"),
-      th("Faltan", "Partidos por jugar"), th("Máx.", "Máximo de puntos posibles"), th("Situación"));
+      th("Faltan", "Partidos por jugar"), th("Máx.", "Máximo de puntos posibles"),
+      hasOdds ? th("Clasifica", "Probabilidad de entrar al top 6") : null,
+      hasOdds ? th("Directo", "Probabilidad de pasar directo a semifinales") : null, th("Situación"));
     const body = st.map((t) => el("tr", { class: t.is_municipal ? "me" : null },
       el("td", { text: t.pos }),
       el("td", null, el("span", { class: "team" }, badge({ logo: t.logo, name: t.name }), el("span", { text: t.name }))),
@@ -452,6 +456,8 @@
       el("td", { text: t.pj == null ? "-" : t.pj }),
       el("td", { text: t.left == null ? "-" : t.left }),
       el("td", { text: t.max == null ? "-" : t.max }),
+      hasOdds ? el("td", { class: "pts", text: oddsOf[t.team_id] ? pct(oddsOf[t.team_id].p_qualify) : "-" }) : null,
+      hasOdds ? el("td", { text: oddsOf[t.team_id] ? pct(oddsOf[t.team_id].p_direct) : "-" }) : null,
       el("td", { class: `sit ${t.status}`, text: STATUS[t.status] || "" })));
     box.append(el("details", { class: "subscribe" }, el("summary", { text: "Qué necesita cada equipo" }),
       el("p", { class: "scroll-hint", text: "Desliza la tabla hacia los lados para ver todas las columnas →" }),
