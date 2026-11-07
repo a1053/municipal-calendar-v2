@@ -124,3 +124,7 @@ python -m unittest discover -s tests          # pruebas
 python scripts/update_calendar.py --dry-run   # ver qué extrae sin escribir
 python scripts/update_calendar.py --from-file tests/fixtures/calendar.html
 ```
+
+## Liguilla "si terminara hoy"
+
+La sección **Liguilla** arma la llave del Apertura con la tabla actual: 1.º y 2.º pasan directo a semifinales, 3.º vs 6.º y 4.º vs 5.º juegan ronda previa, y el 1.º enfrenta al peor ubicado de los ganadores. El mejor ubicado cierra siempre la vuelta en casa. Se puede tocar un equipo para avanzarlo en la llave. La fase regular termina cuando todos juegan 22 partidos (`liguilla` en `site/config.json`). La lógica está en `site/liguilla.js` con pruebas en `tests/liguilla.test.js`. Supuestos: series a ida y vuelta y orden de la tabla tal como lo entrega ESPN.

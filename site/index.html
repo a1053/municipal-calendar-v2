@@ -23,6 +23,7 @@
     <nav aria-label="Secciones">
       <a href="#partidos">Partidos</a>
       <a href="#tabla">Tabla</a>
+      <a href="#liguilla">Liguilla</a>
       <a href="#jugadores">Jugadores</a>
       <a href="#noticias">Noticias</a>
       <a href="#redes">Redes</a>
@@ -71,6 +72,11 @@
             <div id="standings"></div>
           </section>
 
+          <section id="liguilla" class="block a-liguilla" aria-labelledby="h-liguilla">
+            <h2 id="h-liguilla">Liguilla: si terminara hoy</h2>
+            <div id="liga-box"></div>
+          </section>
+
           <section id="rendimiento" class="block a-rendimiento" aria-labelledby="h-rendimiento">
             <h2 id="h-rendimiento">Rendimiento</h2>
             <div id="perf"></div>
@@ -100,6 +106,7 @@
 
   <noscript><p class="noscript">Este sitio necesita JavaScript para mostrar los partidos y la tabla.</p></noscript>
   <script src="stats.js" defer></script>
+  <script src="liguilla.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>
