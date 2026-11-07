@@ -435,11 +435,15 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
     rows = ((standings.get("groups") or [{}])[0]).get("rows") or []
     if rows:
         board = None
-        try:
-            board = _get_json(SCOREBOARD_URL.format(slug=LEAGUE_SLUG, start=now.strftime("%Y%m%d"),
-                                                    end=(now + timedelta(days=45)).strftime("%Y%m%d")))
-        except Exception as exc:  # noqa: BLE001
-            print(f"Aviso: calendario de la liga no disponible ({type(exc).__name__})")
+        start, end = now.strftime("%Y%m%d"), (now + timedelta(days=45)).strftime("%Y%m%d")
+        for url in (SCOREBOARD_URL.format(slug=LEAGUE_SLUG, start=start, end=end),
+                    SCOREBOARD_URL.split("&limit")[0].format(slug=LEAGUE_SLUG, start=start, end=end)):
+            try:
+                board = _get_json(url)
+                break
+            except Exception as exc:  # noqa: BLE001
+                code = getattr(exc, "code", "")
+                print(f"Aviso: calendario de la liga no disponible ({type(exc).__name__} {code}) {url}")
         try:
             odds = odds_model.build_odds(rows, board)
         except Exception as exc:  # noqa: BLE001

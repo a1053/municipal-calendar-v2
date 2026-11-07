@@ -409,6 +409,21 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .h2h-rec { display: flex; justify-content: space-between; gap: .5rem; margin: .3rem 0; font-size: .82rem; }
 .h2h-rec span { display: grid; gap: 1px; text-align: center; }
 .h2h-rec strong { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
-.std.need .team { min-width: 0; align-items: flex-start; }
+.std.need { width: max-content; min-width: 100%; }
+.std.need .team { min-width: 8.5rem; }
 .std.need .team > span { text-align: left; line-height: 1.25; }
-.std.need td, .std.need th { padding-left: 4px; padding-right: 4px; }
+.std.need td, .std.need th { padding-left: 6px; padding-right: 6px; white-space: nowrap; }
+.std.need th:first-child, .std.need td:first-child { position: sticky; left: 0; z-index: 1; background: var(--bg); width: 2.4rem; min-width: 2.4rem; }
+.std.need th:nth-child(2), .std.need td:nth-child(2) { position: sticky; left: 2.4rem; z-index: 1; background: var(--bg); text-align: left; box-shadow: 2px 0 0 var(--line); }
+.std.need tr.me td:first-child, .std.need tr.me td:nth-child(2) { background: var(--rojo); }
+.std.need th:last-child, .std.need td:last-child { text-align: left; }
+.std.need td.sit { font-size: .85rem; }
+.std.need .opt { display: table-cell; }
+.scroll-hint { margin: .4rem 0 0; font-size: .78rem; color: var(--muted); }
+@media (max-width: 520px) {
+  .std.need .team { min-width: 0; width: 6.6rem; }
+  .std.need .team .badge { display: none; }
+  .std.need td:nth-child(2) { white-space: normal; font-size: .85rem; line-height: 1.2; }
+  .std.need th:first-child, .std.need td:first-child { width: 2rem; min-width: 2rem; }
+  .std.need th:nth-child(2), .std.need td:nth-child(2) { left: 2rem; }
+}

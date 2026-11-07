@@ -442,19 +442,26 @@
 
     // situación de cada equipo
     const st = L.situation(rows, o);
-    const head = el("tr", null,
-      el("th", { scope: "col", text: "#" }), el("th", { scope: "col", text: "Equipo" }),
-      el("th", { scope: "col", text: "Pts" }),
-      el("th", { scope: "col", text: "Faltan", title: "Partidos por jugar" }),
-      el("th", { scope: "col", class: "opt", text: "Máx.", title: "Máximo de puntos posibles" }));
+    const oddsOf = Object.fromEntries(((data.odds && data.odds.teams) || []).map((t) => [t.team_id, t]));
+    const hasOdds = Object.keys(oddsOf).length > 0 && !pr.done;
+    const th = (text, title) => el("th", { scope: "col", text, title: title || null });
+    const head = el("tr", null, th("#"), th("Equipo"), th("Pts"), th("PJ", "Partidos jugados"),
+      th("Faltan", "Partidos por jugar"), th("Máx.", "Máximo de puntos posibles"),
+      hasOdds ? th("Clasifica", "Probabilidad de entrar al top 6") : null,
+      hasOdds ? th("Directo", "Probabilidad de pasar directo a semifinales") : null, th("Situación"));
     const body = st.map((t) => el("tr", { class: t.is_municipal ? "me" : null },
       el("td", { text: t.pos }),
-      el("td", null, el("span", { class: "team" }, badge({ logo: t.logo, name: t.name }), el("span", null, t.name, STATUS[t.status] ? el("small", { class: `sit ${t.status}`, text: STATUS[t.status] }) : null))),
+      el("td", null, el("span", { class: "team" }, badge({ logo: t.logo, name: t.name }), el("span", { text: t.name }))),
       el("td", { class: "pts", text: t.pts == null ? "-" : t.pts }),
+      el("td", { text: t.pj == null ? "-" : t.pj }),
       el("td", { text: t.left == null ? "-" : t.left }),
-      el("td", { class: "opt", text: t.max == null ? "-" : t.max })));
+      el("td", { text: t.max == null ? "-" : t.max }),
+      hasOdds ? el("td", { class: "pts", text: oddsOf[t.team_id] ? pct(oddsOf[t.team_id].p_qualify) : "-" }) : null,
+      hasOdds ? el("td", { text: oddsOf[t.team_id] ? pct(oddsOf[t.team_id].p_direct) : "-" }) : null,
+      el("td", { class: `sit ${t.status}`, text: STATUS[t.status] || "" })));
     box.append(el("details", { class: "subscribe" }, el("summary", { text: "Qué necesita cada equipo" }),
-      el("div", { class: "tablewrap" }, el("table", { class: "std need" }, el("thead", null, head), el("tbody", null, body))),
+      el("p", { class: "scroll-hint", text: "Desliza la tabla hacia los lados para ver todas las columnas →" }),
+      el("div", { class: "tablewrap", tabindex: "0", role: "group", "aria-label": "Qué necesita cada equipo" }, el("table", { class: "std need" }, el("thead", null, head), el("tbody", null, body))),
       el("p", { class: "liga-help", text: "La situación se calcula con puntos: un empate en puntos con otro equipo se cuenta como posible, porque el desempate lo define la liga. Las series se simulan a ida y vuelta; el mejor ubicado cierra de local." })));
   }
 
