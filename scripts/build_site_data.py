@@ -95,6 +95,26 @@ def _get_json(url: str):
 # --------------------------------------------------------------------------
 # Partidos con marcador
 # --------------------------------------------------------------------------
+def broadcasts_from(comp: dict) -> list[str]:
+    """Canales o plataformas donde se transmite (ESPN los trae en formas distintas)."""
+    names: list[str] = []
+
+    def add(value):
+        if isinstance(value, str) and value.strip() and value.strip() not in names:
+            names.append(value.strip())
+
+    for key in ("broadcasts", "geoBroadcasts"):
+        for b in comp.get(key) or []:
+            if not isinstance(b, dict):
+                continue
+            media = b.get("media") if isinstance(b.get("media"), dict) else {}
+            add(media.get("shortName") or media.get("name"))
+            add(b.get("name") if isinstance(b.get("name"), str) else None)
+            for n in b.get("names") or []:
+                add(n)
+    return names[:4]
+
+
 def events_from_api(obj: dict, competition: str, slug: str = "") -> dict:
     out: dict[str, dict] = {}
     for ev in (obj or {}).get("events", []):
@@ -141,6 +161,7 @@ def events_from_api(obj: dict, competition: str, slug: str = "") -> dict:
             "postponed": postponed,
             "status": stype.get("shortDetail") or stype.get("detail") or stype.get("description") or "",
             "clock": status.get("displayClock") or "",
+            "broadcasts": broadcasts_from(comp),
             "home": {k: home[k] for k in ("id", "name", "logo", "score")},
             "away": {k: away[k] for k in ("id", "name", "logo", "score")},
             "url": f"https://www.espn.com.gt/futbol/partido/_/juegoId/{gid}",
@@ -307,7 +328,9 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
     used, ok, failed = [], 0, 0
     for m in wanted:
         try:
-            detail = sd.parse_summary(_get_json(sd.SUMMARY_URL.format(slug=m["slug"], id=m["id"])), m)
+            raw = _get_json(sd.SUMMARY_URL.format(slug=m["slug"], id=m["id"]))
+            detail = sd.parse_summary(raw, m)
+            h2h = sd.parse_h2h(raw, cal.TEAM_ID, m) if m is nxt else None
         except Exception as exc:  # noqa: BLE001
             failed += 1
             print(f"Aviso: sin detalle del partido {m['id']} ({type(exc).__name__})")
@@ -320,7 +343,7 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
             except Exception as exc:  # noqa: BLE001
                 print(f"Aviso: sin calendario del rival ({type(exc).__name__})")
                 rival_events = {}
-            rival = sd.build_rival(m, cal.TEAM_ID, standings, rival_events, matches)
+            rival = sd.build_rival(m, cal.TEAM_ID, standings, rival_events, matches, h2h)
         if not detail["has_data"] and not rival:
             continue
         ok += 1
@@ -426,6 +449,8 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
             odds["stale"] = bool(standings.get("stale"))
         sources["odds"] = "ok" if odds else "error"
 
+    history = odds_model.update_history(_previous(prev_dir, "history.json"), odds, stamp)
+
     out_dir.mkdir(parents=True, exist_ok=True)
     details = build_details(matches, standings, out_dir, now, sources)
     players = sd.build_players(details, cal.TEAM_ID)
@@ -446,6 +471,7 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
         "players.json": {"updated": stamp, "players": players},
         "news.json": news,
         **({"odds.json": odds} if odds else {}),
+        **({"history.json": history} if history else {}),
         "meta.json": {"updated": stamp, "sources": sources},
     }
     for name, payload in files.items():

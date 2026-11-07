@@ -57,6 +57,35 @@ SUMMARY = {
 }
 
 
+class H2HTests(unittest.TestCase):
+    MATCH = {"home": {"id": "7258", "name": "Municipal"}, "away": {"id": "9", "name": "Aurora"}}
+
+    def ev(self, i, h, a, hs, as_, date="2026-03-01T00:00Z", **kw):
+        return {"id": str(i), "gameDate": date, "homeTeamId": h, "awayTeamId": a, "homeTeamScore": hs, "awayTeamScore": as_, **kw}
+
+    def test_record_and_last_from_both_perspectives(self):
+        obj = {"headToHeadGames": [{"events": [
+            self.ev(1, "7258", "9", 2, 0, "2026-03-01T00:00Z", leagueName="Liga"),
+            self.ev(2, "9", "7258", "1", "1", "2026-02-01T00:00Z"),
+            self.ev(3, "9", "7258", 3, 0, "2026-01-01T00:00Z"),
+            self.ev(1, "7258", "9", 2, 0),                 # repetido
+            self.ev(4, "7258", "55", 1, 0),                # otro rival
+            {"id": "5", "gameDate": "2025-12-01T00:00Z", "homeTeamId": "7258", "awayTeamId": "9", "score": "4-1"},
+            self.ev(6, "7258", "9", None, None)]}]}
+        h = sd.parse_h2h(obj, "7258", self.MATCH)
+        self.assertEqual(h["record"], {"g": 2, "e": 1, "p": 1, "total": 4})
+        self.assertEqual([g["id"] for g in h["last"]], ["1", "2", "3", "5"])
+        self.assertEqual((h["last"][0]["home"], h["last"][0]["score"], h["last"][0]["competition"]), ("Municipal", "2-0", "Liga"))
+        self.assertNotIn("mine", h["last"][0])
+
+    def test_missing_data_is_none_and_rival_keeps_it(self):
+        self.assertIsNone(sd.parse_h2h({}, "7258", self.MATCH))
+        self.assertIsNone(sd.parse_h2h({"headToHeadGames": [{"events": "x"}, None]}, "7258", self.MATCH))
+        match = {"id": "1", **self.MATCH}
+        r = sd.build_rival(match, "7258", {}, {}, [], {"record": {"g": 1, "e": 0, "p": 0, "total": 1}, "last": []})
+        self.assertEqual(r["h2h"]["record"]["total"], 1)
+
+
 class ParseTests(unittest.TestCase):
     def test_events_classified_sorted_and_filtered(self):
         evs = sd.parse_events(SUMMARY)

@@ -11,6 +11,7 @@
   --muted: #655659;
   --line: #e3dbdc;
   --win: #1d7a3e;
+  --s1: #d01c24; --s2: #2a7ab8;
   --loss: #b3261e;
   --draw: #6b5c5f;
   --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
@@ -28,6 +29,7 @@
     --muted: #b8a8ab;
     --line: #3a2a2d;
     --win: #4cc27a;
+    --s1: #e0474e; --s2: #4a95d0;
     --loss: #ff7b73;
     --draw: #b8a8ab;
   }
@@ -378,3 +380,35 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .fc-bar .d { background: #b8bcc4; }
 .fc-scores { margin: .6rem 0 0; font-size: .85rem; }
 .chip-s { display: inline-block; margin: 0 .3rem .2rem 0; padding: .1rem .5rem; border-radius: 99px; background: rgba(128,128,128,.2); font-variant-numeric: tabular-nums; }
+
+/* ---- carrera a la liguilla ---- */
+.race { margin: 1.4rem 0; }
+.race-chart { position: relative; }
+.race-svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
+.race-svg .grid { stroke: var(--line); stroke-width: 1; }
+.race-svg .tick { fill: var(--muted); font-size: 11px; }
+.race-svg .end-label { fill: var(--ink); font-size: 12px; font-weight: 700; }
+.race-svg .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.race-svg .line.s1 { stroke: var(--s1); }
+.race-svg .line.s2 { stroke: var(--s2); }
+.race-svg .dot { stroke: var(--bg); stroke-width: 2; }
+.race-svg .dot.s1 { fill: var(--s1); } .race-svg .dot.s2 { fill: var(--s2); }
+.race-svg .cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.race-tip { position: absolute; top: 0; transform: translateX(-50%); display: grid; gap: 2px; padding: .4rem .6rem; font-size: .78rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; pointer-events: none; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.race-tip[hidden] { display: none; }
+.legend .lg.s1::before { background: var(--s1); } .legend .lg.s2::before { background: var(--s2); }
+.where.tv { margin-top: 6px; font-weight: 700; }
+
+.sched-list { list-style: none; margin: .6rem 0; padding: 0; display: grid; gap: .8rem; }
+.sched-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.sched-opps { margin: .3rem 0 0; }
+.sched-list li.me .sched-head strong { color: var(--rojo-texto); }
+.diff { font-size: .75rem; font-weight: 700; padding: .1rem .5rem; border-radius: 99px; border: 1px solid currentColor; }
+.diff.hard { color: var(--loss); } .diff.easy { color: var(--win); } .diff.mid { color: var(--muted); }
+
+.h2h-rec { display: flex; justify-content: space-between; gap: .5rem; margin: .3rem 0; font-size: .82rem; }
+.h2h-rec span { display: grid; gap: 1px; text-align: center; }
+.h2h-rec strong { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.std.need .team { min-width: 0; align-items: flex-start; }
+.std.need .team > span { text-align: left; line-height: 1.25; }
+.std.need td, .std.need th { padding-left: 4px; padding-right: 4px; }

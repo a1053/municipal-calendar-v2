@@ -185,5 +185,14 @@ class BuildTests(unittest.TestCase):
         self.assertIn('"standings": "stale"', files["meta.json"])
 
 
+    def test_broadcasts_in_both_shapes(self):
+        ev = comp(0, 0)
+        ev["competitions"][0]["broadcasts"] = [{"market": {"type": "National"}, "media": {"shortName": "Tigo Sports"}},
+                                               {"names": ["ESPN+", "Tigo Sports"]}]
+        ev["competitions"][0]["geoBroadcasts"] = [{"type": {"shortName": "TV"}, "media": {"shortName": "Claro Sports"}}, "raro"]
+        self.assertEqual(b.events_from_api({"events": [ev]}, "L")["1"]["broadcasts"], ["Tigo Sports", "ESPN+", "Claro Sports"])
+        self.assertEqual(b.events_from_api({"events": [comp(0, 0)]}, "L")["1"]["broadcasts"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

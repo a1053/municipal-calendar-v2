@@ -215,7 +215,44 @@ def form_of(events: dict, team_id: str, n: int = 5) -> list[dict]:
     return out[::-1]
 
 
-def build_rival(match: dict, my_id: str, standings: dict, rival_events: dict, season: list[dict]) -> dict | None:
+def parse_h2h(obj: dict, my_id: str, match: dict) -> dict | None:
+    """Historial entre los dos equipos, si ESPN lo trae en `headToHeadGames`.
+
+    Devuelve {"record": {g, e, p, total}, "last": [...hasta 5 más recientes]} o None.
+    """
+    names = {match["home"]["id"]: match["home"]["name"], match["away"]["id"]: match["away"]["name"]}
+    seen, games = set(), []
+    for block in (obj or {}).get("headToHeadGames") or []:
+        for ev in (block or {}).get("events") or []:
+            if not isinstance(ev, dict):
+                continue
+            h, a = str(ev.get("homeTeamId", "")), str(ev.get("awayTeamId", ""))
+            hs, as_ = ev.get("homeTeamScore", ev.get("homeScore")), ev.get("awayTeamScore", ev.get("awayScore"))
+            if (hs is None or as_ is None) and isinstance(ev.get("score"), str) and "-" in ev["score"]:
+                hs, as_ = ev["score"].split("-", 1)
+            try:
+                hs, as_ = int(str(hs).strip()), int(str(as_).strip())
+            except (TypeError, ValueError):
+                continue
+            key = str(ev.get("id") or f"{h}{a}{ev.get('gameDate')}")
+            if {h, a} != set(names) or key in seen:
+                continue
+            seen.add(key)
+            games.append({"id": key, "start": str(ev.get("gameDate") or ev.get("date") or ""), "home_id": h, "away_id": a,
+                          "home": names[h], "away": names[a], "score": f"{hs}-{as_}",
+                          "competition": str(ev.get("leagueName") or ""), "mine": (hs, as_) if h == my_id else (as_, hs)})
+    if not games:
+        return None
+    record = {"g": 0, "e": 0, "p": 0, "total": len(games)}
+    for g in games:
+        mine, theirs = g.pop("mine")
+        record["g" if mine > theirs else "p" if mine < theirs else "e"] += 1
+    games.sort(key=lambda g: g["start"], reverse=True)
+    return {"record": record, "last": games[:5]}
+
+
+def build_rival(match: dict, my_id: str, standings: dict, rival_events: dict, season: list[dict],
+                h2h: dict | None = None) -> dict | None:
     rival = match["away"] if match["home"]["id"] == my_id else match["home"]
     if not rival.get("id"):
         return None
@@ -231,8 +268,8 @@ def build_rival(match: dict, my_id: str, standings: dict, rival_events: dict, se
                              "score": f"{m['home']['score']}-{m['away']['score']}", "id": m["id"]})
     out = {"team_id": rival["id"], "name": rival["name"], "logo": rival.get("logo", ""),
            "pos": row["pos"] if row else None, "pts": row["pts"] if row else None,
-           "pj": row["pj"] if row else None, "form": form_of(rival_events, rival["id"]), "meetings": meetings}
-    return out if (out["pos"] or out["form"] or meetings) else None
+           "pj": row["pj"] if row else None, "form": form_of(rival_events, rival["id"]), "meetings": meetings, "h2h": h2h}
+    return out if (out["pos"] or out["form"] or meetings or h2h) else None
 
 
 # --------------------------------------------------------------------------

@@ -119,7 +119,9 @@
         el("div", { class: "side" }, badge(m.home), el("span", { class: "nm", text: m.home.name })),
         center,
         el("div", { class: "side" }, badge(m.away), el("span", { class: "nm", text: m.away.name }))),
-      el("p", { class: "where", text: [fDayLong(d), compLabel(m.competition), m.venue].filter(Boolean).join(", ") }));
+      el("p", { class: "where", text: [fDayLong(d), compLabel(m.competition), m.venue].filter(Boolean).join(", ") }),
+      m.state !== "post" && m.broadcasts && m.broadcasts.length
+        ? el("p", { class: "where tv", text: `Dónde verlo: ${m.broadcasts.join(", ")}` }) : "");
   }
 
   function renderBoard() {
@@ -275,6 +277,109 @@
         el("span", { class: "o-pct", text: pct(t.p_qualify) })))),
       el("p", { class: "liga-help", text: `Estimación con ${od.sims.toLocaleString("es-GT")} simulaciones del resto de la fase regular, ${modes[od.fixtures] || ""}. Cada equipo pesa según sus goles a favor y en contra, con ventaja de local. No considera lesiones, refuerzos ni suspensiones, y el desempate es por diferencia de goles. Son probabilidades, no pronósticos.${od.updated ? ` Calculadas ${ago(od.updated)}; se recalculan en cada actualización del sitio.` : ""}` }));
   }
+  /** Partidos con fecha que les faltan a los equipos que pelean por la liguilla y qué tan difíciles son. */
+  function renderSchedule(od, o) {
+    const byId = Object.fromEntries(od.teams.map((t) => [t.team_id, t]));
+    const withSos = od.teams.filter((t) => t.sos != null);
+    if (od.fixtures === "aleatorio" || !withSos.length) return null;
+    const shown = od.teams.filter((t) => t.pos <= o.qualify + 2 && (t.fixtures || []).length).sort((a, b) => a.pos - b.pos);
+    if (!shown.length) return null;
+    const tag = (t) => {
+      const r = t.sos_rank, n = withSos.length;
+      return r <= n / 3 ? ["Difícil", "hard"] : r > 2 * n / 3 ? ["Fácil", "easy"] : ["Medio", "mid"];
+    };
+    return el("details", { class: "subscribe sched" },
+      el("summary", { text: "Calendario que les falta a los equipos de arriba" }),
+      el("ol", { class: "sched-list" }, ...shown.map((t) => {
+        const [label, cls] = tag(t);
+        return el("li", { class: t.is_municipal ? "me" : null },
+          el("div", { class: "sched-head" }, el("strong", { text: `${t.pos}.º ${t.name}` }), el("span", { class: `diff ${cls}`, text: label })),
+          el("p", { class: "sched-opps" }, ...t.fixtures.map((f) => el("span", { class: "chip-s", text: `${f.home ? "Local" : "Visita"}: ${(byId[f.opp] || {}).name || "?"}` }))));
+      })),
+      el("p", { class: "liga-help", text: "Solo incluye los partidos con fecha en el calendario de la liga. La dificultad compara el promedio de puntos por partido de los rivales que les faltan: más alto, más difícil." }));
+  }
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const sv = (tag, attrs, ...kids) => {
+    const n = document.createElementNS(SVGNS, tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => n.setAttribute(k, v));
+    kids.forEach((k) => n.append(k));
+    return n;
+  };
+  /** Cómo cambia con el tiempo la probabilidad de Municipal de clasificar (y de pasar directo). */
+  function renderRace(h) {
+    const es = (h && h.entries) || [];
+    const box = el("div", { class: "race" }, el("h3", { text: "Carrera a la liguilla" }));
+    if (es.length < 2) {
+      box.append(el("p", { class: "liga-help", text: "La gráfica se irá llenando: el sitio guarda la probabilidad de Municipal en cada actualización y la dibuja jornada tras jornada." }));
+      return box;
+    }
+    const W = 640, H = 240, m = { l: 40, r: 100, t: 14, b: 30 };
+    const n = es.length;
+    const X = (i) => m.l + i * (W - m.l - m.r) / (n - 1);
+    const Y = (p) => m.t + (100 - p) * (H - m.t - m.b) / 100;
+    const when = (e) => fmt({ day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }).format(new Date(e.t));
+    const series = [
+      { key: "p_qualify", label: "Clasifica", cls: "s1" },
+      { key: "p_direct", label: "Directo a semifinales", cls: "s2" },
+    ];
+    box.append(el("p", { class: "legend" }, ...series.map((s) => el("span", { class: `lg ${s.cls}`, text: s.label }))));
+
+    const svg = sv("svg", { viewBox: `0 0 ${W} ${H}`, class: "race-svg", role: "img",
+      "aria-label": `Probabilidad de Municipal de clasificar a la liguilla en ${n} actualizaciones. Última: ${pct(es[n - 1].p_qualify)} de clasificar y ${pct(es[n - 1].p_direct)} de pasar directo.` });
+    [0, 50, 100].forEach((v) => {
+      svg.append(sv("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), class: "grid" }));
+      const t = sv("text", { x: m.l - 6, y: Y(v) + 4, class: "tick", "text-anchor": "end" }); t.textContent = `${v}%`; svg.append(t);
+    });
+    const step = Math.max(1, Math.ceil(n / 6));
+    es.forEach((e, i) => {
+      if (i % step && i !== n - 1) return;
+      const t = sv("text", { x: X(i), y: H - 8, class: "tick", "text-anchor": i === 0 ? "start" : i === n - 1 ? "end" : "middle" });
+      t.textContent = `PJ ${e.pj}`; svg.append(t);
+    });
+    const ends = [];
+    series.forEach((s) => {
+      svg.append(sv("polyline", { points: es.map((e, i) => `${X(i).toFixed(1)},${Y(e[s.key]).toFixed(1)}`).join(" "), class: `line ${s.cls}` }));
+      es.forEach((e, i) => { if (n <= 24 || i === n - 1) svg.append(sv("circle", { cx: X(i), cy: Y(e[s.key]), r: 4, class: `dot ${s.cls}` })); });
+      ends.push({ y: Y(es[n - 1][s.key]), s });
+    });
+    ends.sort((a, b) => a.y - b.y);
+    if (ends.length > 1 && ends[1].y - ends[0].y < 14) ends[0].y = ends[1].y - 14; // etiquetas sin encimarse
+    ends.forEach(({ y, s }) => {
+      const t = sv("text", { x: X(n - 1) + 10, y: y + 4, class: "end-label" });
+      t.textContent = `${s.label.split(" ")[0]} ${pct(es[n - 1][s.key])}`; svg.append(t);
+    });
+
+    // hover: línea guía + tooltip con el punto más cercano
+    const cross = sv("line", { y1: m.t, y2: H - m.b, class: "cross", visibility: "hidden" });
+    const hit = sv("rect", { x: m.l - 10, y: 0, width: W - m.l - m.r + 20, height: H, fill: "transparent" });
+    svg.append(cross, hit);
+    const tip = el("div", { class: "race-tip", hidden: true });
+    const show = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const px = (ev.clientX - r.left) / r.width * W;
+      const i = Math.max(0, Math.min(n - 1, Math.round((px - m.l) / ((W - m.l - m.r) / (n - 1)))));
+      const e = es[i];
+      cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("visibility", "visible");
+      tip.replaceChildren(el("strong", { text: when(e) }),
+        el("span", { text: `${e.pos}.º lugar, ${e.pts} pts, ${e.pj} partidos` }),
+        el("span", { text: `Clasifica: ${pct(e.p_qualify)}` }), el("span", { text: `Directo: ${pct(e.p_direct)}` }));
+      tip.hidden = false;
+      const left = X(i) / W * 100;
+      tip.style.left = `${Math.min(Math.max(left, 18), 82)}%`;
+    };
+    const hide = () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); };
+    hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show);
+    hit.addEventListener("pointerleave", hide);
+    box.append(el("div", { class: "race-chart" }, svg, tip));
+
+    const rows = es.map((e) => el("tr", null, el("td", { text: when(e) }), el("td", { text: `${e.pos}.º` }), el("td", { text: e.pts }),
+      el("td", { text: e.pj }), el("td", { text: pct(e.p_qualify) }), el("td", { text: pct(e.p_direct) })));
+    box.append(el("details", { class: "subscribe" }, el("summary", { text: "Ver los datos en tabla" }),
+      el("div", { class: "tablewrap" }, el("table", { class: "std" },
+        el("thead", null, el("tr", null, ...["Fecha", "Pos", "Pts", "PJ", "Clasifica", "Directo"].map((t) => el("th", { scope: "col", text: t })))),
+        el("tbody", null, ...rows.reverse())))));
+    return box;
+  }
   const STATUS = {
     direct: "Semifinales asegurada", qualified: "Liguilla asegurada", alive: "En disputa",
     "no-direct": "Sin directo posible", out: "Eliminado", unknown: "",
@@ -332,6 +437,8 @@
         ? el("button", { type: "button", class: "btn small", text: "Reiniciar llave", onclick: () => { ligaPicks = {}; renderLiguilla(); } }) : null);
 
     if (od && !pr.done) box.append(renderOdds(od));
+    box.append(renderRace(data.history));
+    if (od && !pr.done) { const sc = renderSchedule(od, o); if (sc) box.append(sc); }
 
     // situación de cada equipo
     const st = L.situation(rows, o);
@@ -347,7 +454,7 @@
       el("td", { text: t.left == null ? "-" : t.left }),
       el("td", { class: "opt", text: t.max == null ? "-" : t.max })));
     box.append(el("details", { class: "subscribe" }, el("summary", { text: "Qué necesita cada equipo" }),
-      el("div", { class: "tablewrap" }, el("table", { class: "std split" }, el("thead", null, head), el("tbody", null, body))),
+      el("div", { class: "tablewrap" }, el("table", { class: "std need" }, el("thead", null, head), el("tbody", null, body))),
       el("p", { class: "liga-help", text: "La situación se calcula con puntos: un empate en puntos con otro equipo se cuenta como posible, porque el desempate lo define la liga. Las series se simulan a ida y vuelta; el mejor ubicado cierra de local." })));
   }
 
@@ -554,10 +661,20 @@
         el("div", null, el("strong", { text: r.name }), bits.length ? el("div", { class: "meta", text: bits.join(", ") }) : null)),
       r.form && r.form.length ? el("p", { class: "form" }, el("span", { text: "Sus últimos partidos:" }),
         ...r.form.map((f) => el("span", { class: `chip ${f.result}`, title: `${f.home ? "Local" : "Visitante"} contra ${f.vs}, ${f.score}`, text: f.result }))) : null,
+      r.h2h && r.h2h.record ? el("div", { class: "h2h" }, el("h3", { text: "Historial entre ambos" }),
+        el("p", { class: "h2h-rec" },
+          el("span", null, el("strong", { text: r.h2h.record.g }), " ganó Municipal"),
+          el("span", null, el("strong", { text: r.h2h.record.e }), " empates"),
+          el("span", null, el("strong", { text: r.h2h.record.p }), ` ganó ${r.name}`)),
+        el("p", { class: "meta", text: `En ${r.h2h.record.total} partidos que registra ESPN.` }),
+        el("ul", { class: "plain" }, ...(r.h2h.last || []).map((x) => el("li", null,
+          el("span", { text: `${x.home} ${x.score} ${x.away}` }),
+          el("span", { class: "meta", text: [x.start && !isNaN(Date.parse(x.start)) ? `, ${fDay(new Date(x.start))}` : "", x.competition ? `, ${x.competition}` : ""].join("") }))))) : null,
       r.meetings && r.meetings.length ? el("div", null, el("h3", { text: "Se enfrentaron esta temporada" }),
         el("ul", { class: "plain" }, ...r.meetings.map((x) => el("li", null,
           el("a", { href: `#/partido/${x.id}`, text: `${x.home} ${x.score} ${x.away}` }),
-          el("span", { class: "meta", text: `, ${fDay(new Date(x.start))}` }))))) : null);
+          el("span", { class: "meta", text: `, ${fDay(new Date(x.start))}` }))))) : null,
+      el("p", { class: "meta" }, el("a", { href: "https://www.fotmob.com/teams/9933/overview/csd-municipal", target: "_blank", rel: "noopener noreferrer", text: "Ver más estadísticas de Municipal en FotMob" })));
   }
 
   function timeline(m, events) {
@@ -812,7 +929,7 @@
   }
   let loaded = false;
   async function load() {
-    const names = ["matches", "standings", "news", "meta", "players", "odds"];
+    const names = ["matches", "standings", "news", "meta", "players", "odds", "history"];
     const res = await Promise.allSettled(names.map(getJson));
     names.forEach((n, i) => { if (res[i].status === "fulfilled") data[n] = res[i].value; });
     if (res[0].status === "rejected" && !data.matches) {

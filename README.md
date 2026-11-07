@@ -144,3 +144,15 @@ El sitio se puede instalar en el celular ("Agregar a pantalla de inicio" o "Inst
 ## Datos en vivo desde el navegador
 
 GitHub retrasa las corridas programadas (a veces horas), así que `site/live.js` pone la tabla y los marcadores al día directamente con ESPN cada vez que se abre o refresca la página (cada 3 minutos, o 45 segundos con partido en vivo). Si ESPN no responde o cambia su formato, el sitio muestra los datos de la última corrida. Las probabilidades de la liguilla se siguen calculando en cada corrida del sitio y la página indica cuándo. Pruebas: `tests/live.test.js`.
+
+## Carrera a la liguilla
+
+En cada corrida el sitio guarda una foto de Municipal (posición, puntos, partidos jugados y probabilidades de clasificar y de pasar directo) en `data/history.json`. Para que la historia sobreviva entre publicaciones, el flujo descarga el `history.json` ya publicado antes de construir. La gráfica de la sección Liguilla dibuja esa historia; arranca vacía y se llena con el tiempo. Si la posición, los puntos y los partidos no cambian, se reemplaza la última foto en vez de acumular una por corrida (máximo 800). Pruebas en `tests/test_odds.py`.
+
+## Dónde verlo y calendario de los rivales
+
+Si ESPN publica el canal o la plataforma de un partido (campo `broadcasts` en `matches.json`), se muestra "Dónde verlo" en el marcador y en la página del partido; si no lo trae, no se muestra nada. En Liguilla, el desplegable "Calendario que les falta" lista los partidos con fecha de los equipos de arriba y una dificultad (promedio de puntos por partido de los rivales que les faltan, en tercios: difícil, medio y fácil). Solo usa partidos del calendario de la liga, nunca los repartidos al azar; si el calendario no está disponible, el desplegable no aparece.
+
+## Historial contra el rival
+
+En la página del próximo partido, "El rival" muestra el historial entre ambos si ESPN lo trae (`headToHeadGames` en el resumen del partido): balance de victorias, empates y derrotas y los últimos cinco partidos. Si ESPN no lo da, no aparece. Incluye un enlace a la página de Municipal en FotMob; el sitio no lee ni copia datos de FotMob.
