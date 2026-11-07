@@ -156,3 +156,10 @@ Si ESPN publica el canal o la plataforma de un partido (campo `broadcasts` en `m
 ## Historial contra el rival
 
 En la página del próximo partido, "El rival" muestra el historial entre ambos si ESPN lo trae (`headToHeadGames` en el resumen del partido): balance de victorias, empates y derrotas y los últimos cinco partidos. Si ESPN no lo da, no aparece. Incluye un enlace a la página de Municipal en FotMob; el sitio no lee ni copia datos de FotMob.
+
+## Noticias por tema, rachas, WhatsApp y alineación en cancha
+
+- **Noticias por tema** (`site/topics.js`): filtros Fichajes, Lesiones, Técnico y directiva y Selección, por palabras clave en el título y el resumen. Solo aparecen los temas que tienen noticias.
+- **Rachas y récords** (`records` en `site/stats.js`): mayor victoria, peor derrota, partido con más goles y rachas, dentro de Rendimiento.
+- **Compartir por WhatsApp** (`site/share.js`): botones en la página del partido, la tabla y la liguilla; abren WhatsApp con un texto ya armado (enlace `wa.me`, sin servidores).
+- **Alineación en cancha** (`site/pitch.js`): dibuja a los titulares según la formación y el lugar que da ESPN (`formationPlace`); si faltan datos, queda la lista. Pruebas en `tests/*.test.js`.

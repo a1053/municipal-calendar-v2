@@ -101,6 +101,9 @@ class ParseTests(unittest.TestCase):
         self.assertEqual([l["formation"] for l in lu], ["4-3-3", "4-4-2"])
         played = {p["name"]: p["played"] for p in lu[0]["players"]}
         self.assertEqual(played, {"Pérez": True, "Ruiz": True, "Soto": True, "Banca": False})
+        self.assertTrue(all(isinstance(p["place"], int) for l in lu for p in l["players"]))   # lugar en la formación (0 si ESPN no lo da)
+        self.assertEqual(sd._int("7"), 7)
+        self.assertEqual(sd._int(None), 0)
 
     def test_stats_aligned_by_team_and_labeled(self):
         st = sd.parse_stats(SUMMARY, MUNI, RIVAL)
