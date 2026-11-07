@@ -20,12 +20,13 @@ import json
 import re
 import sys
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import news_sources  # noqa: E402
+import news_sources
+import odds as odds_model  # noqa: E402
 import site_details as sd  # noqa: E402
 import update_calendar as cal  # noqa: E402  (reutiliza API de ESPN y la "base de datos")
 
@@ -35,6 +36,7 @@ UTC = timezone.utc
 
 LEAGUE_SLUG = "gua.1"
 STANDINGS_URL = "https://site.api.espn.com/apis/v2/sports/soccer/{slug}/standings"
+SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard?dates={start}-{end}&limit=300"
 NEWS_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/news?limit=50"
 GNEWS_URL = ("https://news.google.com/rss/search?q={q}&hl=es-419&gl=GT&ceid=GT:es-419")
 GNEWS_QUERY = '"CSD Municipal" OR "Rojos de Municipal" OR "Municipal" "Liga Nacional" Guatemala'
@@ -405,6 +407,25 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
         if prev_news:
             news = {**prev_news, "stale": True}
 
+    # 3b) Probabilidades de liguilla (mejor esfuerzo: sin calendario de la liga se reparten al azar)
+    odds = None
+    rows = ((standings.get("groups") or [{}])[0]).get("rows") or []
+    if rows:
+        board = None
+        try:
+            board = _get_json(SCOREBOARD_URL.format(slug=LEAGUE_SLUG, start=now.strftime("%Y%m%d"),
+                                                    end=(now + timedelta(days=45)).strftime("%Y%m%d")))
+        except Exception as exc:  # noqa: BLE001
+            print(f"Aviso: calendario de la liga no disponible ({type(exc).__name__})")
+        try:
+            odds = odds_model.build_odds(rows, board)
+        except Exception as exc:  # noqa: BLE001
+            print(f"Aviso: no se pudieron calcular probabilidades ({type(exc).__name__}: {exc})")
+        if odds:
+            odds["updated"] = stamp
+            odds["stale"] = bool(standings.get("stale"))
+        sources["odds"] = "ok" if odds else "error"
+
     out_dir.mkdir(parents=True, exist_ok=True)
     details = build_details(matches, standings, out_dir, now, sources)
     players = sd.build_players(details, cal.TEAM_ID)
@@ -424,6 +445,7 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
         "standings.json": standings,
         "players.json": {"updated": stamp, "players": players},
         "news.json": news,
+        **({"odds.json": odds} if odds else {}),
         "meta.json": {"updated": stamp, "sources": sources},
     }
     for name, payload in files.items():
