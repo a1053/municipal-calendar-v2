@@ -264,17 +264,20 @@
       return btn;
     };
     const wrap = el("div", { class: "bracket" });
-    b.rounds.forEach((r) => {
-      const col = el("div", { class: "br-round" }, el("h3", { text: r.name }));
+    b.rounds.forEach((r, ri) => {
+      const list = el("div", { class: "br-ties" });
       r.ties.forEach((t) => {
         // ida en casa del peor ubicado; vuelta en casa del mejor ubicado
-        const note = t.hi && t.lo ? `Ida en casa de ${t.lo.name}. Vuelta en casa de ${t.hi.name}.` : "";
-        col.append(el("div", { class: "tie" }, side(t.hi, t, 0), side(t.lo, t, 1), note ? el("p", { class: "tie-note", text: note }) : null));
+        const note = t.hi && t.lo ? `Ida: ${t.lo.name}. Vuelta: ${t.hi.name}.` : "";
+        list.append(el("div", { class: "tie" }, side(t.hi, t, 0), side(t.lo, t, 1), note ? el("p", { class: "tie-note", text: note }) : null));
       });
-      wrap.append(col);
+      wrap.append(el("div", { class: `br-round r${ri}` }, el("h3", { text: r.name }), list));
     });
-    box.append(wrap);
-    if (b.champion) box.append(el("p", { class: "champ", text: `Campeón en esta simulación: ${b.champion.name}` }));
+    wrap.append(el("div", { class: "br-round r3" }, el("h3", { text: "Campeón" }),
+      el("div", { class: "br-ties" }, el("div", { class: `trophy${b.champion ? " has" : ""}` },
+        b.champion ? [badge({ logo: b.champion.logo, name: b.champion.name }), el("strong", { text: b.champion.name })] : el("span", { text: "Por definir" })))));
+    box.append(el("p", { class: "br-hint", text: "Desliza para ver toda la llave →" }));
+    box.append(el("div", { class: "bracket-wrap", tabindex: "0", role: "group", "aria-label": "Llave de la liguilla" }, wrap));
     box.append(el("p", { class: "liga-help", text: "Toca un equipo para avanzarlo en la llave y ver cómo se arma el camino al título." }),
       Object.keys(ligaPicks).some((k) => ligaPicks[k] != null)
         ? el("button", { type: "button", class: "btn small", text: "Reiniciar llave", onclick: () => { ligaPicks = {}; renderLiguilla(); } }) : null);
