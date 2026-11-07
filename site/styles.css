@@ -421,8 +421,8 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .std.need .opt { display: table-cell; }
 .scroll-hint { margin: .4rem 0 0; font-size: .78rem; color: var(--muted); }
 @media (max-width: 520px) {
-  .std.need .team { min-width: 0; width: 6.6rem; }
-  .std.need .team .badge { display: none; }
+  .std.need .team { min-width: 0; width: 8.4rem; gap: 6px; }
+  .std.need .team .badge { width: 20px; height: 20px; flex: none; }
   .std.need td:nth-child(2) { white-space: normal; font-size: .85rem; line-height: 1.2; }
   .std.need th:first-child, .std.need td:first-child { width: 2rem; min-width: 2rem; }
   .std.need th:nth-child(2), .std.need td:nth-child(2) { left: 2rem; }
