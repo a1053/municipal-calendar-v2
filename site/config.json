@@ -6,6 +6,7 @@
   "instagram_handle": "rojos_municipal",
   "show_x_embed": true,
   "show_instagram_embed": true,
+  "liguilla": { "tournament": "Apertura 2026", "regular_rounds": 22, "direct": 2, "qualify": 6 },
   "competition_labels": {
     "Liga Nacional de Guatemala": "Liga Bantrab",
     "Concacaf Central American Cup": "Copa Centroamericana",

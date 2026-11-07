@@ -301,3 +301,34 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .cal-title { margin: 8px 0 14px; padding-top: 10px; border-top: 6px solid var(--rojo); font: 800 2.1rem/1 var(--font-display); }
 .cal-count { margin: 0 0 4px; color: var(--muted); }
 .block h3.month, .mv-body h3.month { margin: 26px 0 4px; font: 800 1.35rem/1 var(--font-display); color: var(--ink); }
+
+/* ---- liguilla ---- */
+.std tr.z-dir td:first-child { box-shadow: inset 4px 0 0 var(--led); }
+.std tr.z-pre td:first-child { box-shadow: inset 4px 0 0 #8a8f98; }
+.std tr.me.z-dir td:first-child, .std tr.me.z-pre td:first-child { box-shadow: inset 4px 0 0 #fff; }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin: .6rem 0 0; font-size: .8rem; }
+.legend .lg::before { content: ""; display: inline-block; width: .7rem; height: .7rem; margin-right: .4rem; border-radius: 2px; vertical-align: -1px; background: #8a8f98; }
+.legend .lg.dir::before { background: var(--led); }
+.liga-intro { margin: 0 0 .75rem; line-height: 1.5; }
+.liga-sum { margin: 0 0 1rem; padding-left: 1.1rem; line-height: 1.5; }
+.bracket { display: grid; gap: 1rem; }
+.br-round h3 { margin: 0 0 .4rem; }
+.tie { border: 1px solid rgba(128,128,128,.35); border-radius: 8px; padding: .4rem; margin-bottom: .6rem; display: grid; gap: .3rem; }
+.lt { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 44px; padding: .3rem .6rem; border-radius: 6px; border: 1px solid rgba(128,128,128,.35); background: transparent; color: inherit; font: 600 .95rem var(--font-body); text-align: left; cursor: pointer; }
+.lt.empty { cursor: default; opacity: .6; font-weight: 400; border-style: dashed; }
+.lt:hover:not(.empty) { border-color: var(--rojo); }
+.lt.won { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+.lt.lost { opacity: .45; text-decoration: line-through; }
+.lt.me:not(.won) { border-color: var(--rojo); }
+.lt-seed { min-width: 1.4rem; font-weight: 800; opacity: .75; }
+.lt-name { overflow-wrap: anywhere; }
+.tie-note { margin: .1rem 0 0; font-size: .78rem; opacity: .75; }
+.champ { margin: .5rem 0; font-weight: 800; color: var(--rojo); }
+.liga-help { font-size: .82rem; opacity: .8; margin: .6rem 0; }
+.btn.small { padding: .4rem .8rem; font-size: .85rem; cursor: pointer; border: 0; }
+.sit { font-size: .78rem; white-space: normal; }
+.sit.direct, .sit.qualified { font-weight: 700; }
+.sit.out { opacity: .6; }
+.lt .badge { width: 28px; height: 28px; flex: none; font-size: .7rem; }
+.team .sit { display: block; font-weight: 400; opacity: .75; }
+.team > span { text-align: left; }

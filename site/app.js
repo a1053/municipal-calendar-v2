@@ -17,6 +17,7 @@
       if (v == null || v === false) continue;
       if (k === "class") node.className = v;
       else if (k === "text") node.textContent = v;
+      else if (typeof v === "function") node.addEventListener(k.replace(/^on/, ""), v);
       else node.setAttribute(k, v === true ? "" : v);
     }
     for (const kid of kids.flat()) {
@@ -203,7 +204,9 @@
         el("th", { scope: "col", text: "DG", title: "Diferencia de goles" }),
         el("th", { scope: "col", text: "Pts", title: "Puntos" }));
       const v = (x) => (x == null ? "-" : x);
-      const rows = g.rows.map((r) => el("tr", { class: r.is_municipal ? "me" : null, "aria-current": r.is_municipal ? "true" : null },
+      const lg = ligaOpts();
+      const zone = (r) => (g !== groups[0] || !r.pos ? "" : r.pos <= lg.direct ? " z-dir" : r.pos <= lg.qualify ? " z-pre" : "");
+      const rows = g.rows.map((r) => el("tr", { class: (r.is_municipal ? "me" : "") + zone(r) || null, "aria-current": r.is_municipal ? "true" : null },
         el("td", { text: r.pos }),
         el("td", null, el("span", { class: "team" }, badge({ logo: r.logo, name: r.name }), r.name)),
         el("td", { text: v(r.pj) }),
@@ -215,6 +218,83 @@
           g.name ? el("caption", { text: g.name }) : null,
           el("thead", null, head), el("tbody", null, rows))));
     });
+    box.append(el("p", { class: "legend" },
+      el("span", { class: "lg dir", text: "1.º y 2.º: directo a semifinales" }),
+      el("span", { class: "lg pre", text: "3.º al 6.º: ronda previa" })));
+  }
+
+  // ---------- liguilla ----------
+  let ligaPicks = {};
+  function ligaOpts() {
+    const c = config.liguilla || {};
+    return { rounds: c.regular_rounds || 22, direct: c.direct || 2, qualify: c.qualify || 6 };
+  }
+  const STATUS = {
+    direct: "Semifinales asegurada", qualified: "Liguilla asegurada", alive: "En disputa",
+    "no-direct": "Sin directo posible", out: "Eliminado", unknown: "",
+  };
+  function renderLiguilla() {
+    const box = $("liga-box");
+    box.replaceChildren();
+    const L = window.MuniLiguilla, o = ligaOpts();
+    const g = data.standings && data.standings.groups && data.standings.groups[0];
+    const rows = g ? g.rows.filter((r) => r.pos).sort((a, b) => a.pos - b.pos) : [];
+    if (!L || rows.length < o.qualify) {
+      box.append(el("p", { class: "empty", text: "La llave aparecerá cuando la tabla esté disponible." }));
+      return;
+    }
+    const pr = L.progress(rows, o);
+    const name = (config.liguilla && config.liguilla.tournament) || "Apertura";
+    box.append(el("p", { class: "liga-intro", text: pr.done
+      ? `La fase regular del ${name} terminó. Esta es la llave real.`
+      : `Así quedaría la liguilla del ${name} si la fase regular terminara hoy. Termina cuando todos hayan jugado ${pr.rounds} partidos: ${pr.minPJ === pr.maxPJ ? `hoy todos van en ${pr.minPJ}` : `hoy van entre ${pr.minPJ} y ${pr.maxPJ}`}, y faltan ${pr.matchesLeft} partidos en total. Es una simulación con la tabla actual y puede cambiar en cada jornada.` }));
+    const sum = L.summary(rows, config.team_id, o);
+    if (sum.length) box.append(el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t }))));
+
+    // llave interactiva
+    const b = L.bracket(rows, ligaPicks, o);
+    ligaPicks = b.picks;
+    const side = (t, tieObj, n) => {
+      if (!t) return el("div", { class: "lt empty" }, el("span", { class: "lt-name", text: tieObj.labels[n] || "Por definir" }));
+      const won = tieObj.winner === t, lost = tieObj.winner && !won;
+      const btn = el("button", { type: "button", class: `lt${won ? " won" : ""}${lost ? " lost" : ""}${t.is_municipal ? " me" : ""}`,
+        "aria-pressed": won ? "true" : "false", title: "Avanzar a este equipo",
+        onclick: () => { ligaPicks = { ...ligaPicks, [tieObj.id]: won ? undefined : t.seed }; renderLiguilla(); } },
+        el("span", { class: "lt-seed", text: t.seed }), badge({ logo: t.logo, name: t.name }), el("span", { class: "lt-name", text: t.name }));
+      return btn;
+    };
+    const wrap = el("div", { class: "bracket" });
+    b.rounds.forEach((r) => {
+      const col = el("div", { class: "br-round" }, el("h3", { text: r.name }));
+      r.ties.forEach((t) => {
+        // ida en casa del peor ubicado; vuelta en casa del mejor ubicado
+        const note = t.hi && t.lo ? `Ida en casa de ${t.lo.name}. Vuelta en casa de ${t.hi.name}.` : "";
+        col.append(el("div", { class: "tie" }, side(t.hi, t, 0), side(t.lo, t, 1), note ? el("p", { class: "tie-note", text: note }) : null));
+      });
+      wrap.append(col);
+    });
+    box.append(wrap);
+    if (b.champion) box.append(el("p", { class: "champ", text: `Campeón en esta simulación: ${b.champion.name}` }));
+    box.append(el("p", { class: "liga-help", text: "Toca un equipo para avanzarlo en la llave y ver cómo se arma el camino al título." }),
+      Object.keys(ligaPicks).some((k) => ligaPicks[k] != null)
+        ? el("button", { type: "button", class: "btn small", text: "Reiniciar llave", onclick: () => { ligaPicks = {}; renderLiguilla(); } }) : null);
+
+    // situación de cada equipo
+    const st = L.situation(rows, o);
+    const head = el("tr", null,
+      el("th", { scope: "col", text: "#" }), el("th", { scope: "col", text: "Equipo" }),
+      el("th", { scope: "col", text: "Pts" }),
+      el("th", { scope: "col", text: "Faltan", title: "Partidos por jugar" }),
+      el("th", { scope: "col", class: "opt", text: "Máx.", title: "Máximo de puntos posibles" }));
+    const body = st.map((t) => el("tr", { class: t.is_municipal ? "me" : null },
+      el("td", { text: t.pos }),
+      el("td", null, el("span", { class: "team" }, badge({ logo: t.logo, name: t.name }), el("span", null, t.name, STATUS[t.status] ? el("small", { class: `sit ${t.status}`, text: STATUS[t.status] }) : null))),
+      el("td", { class: "pts", text: t.pts == null ? "-" : t.pts }),
+      el("td", { text: t.left == null ? "-" : t.left }),
+      el("td", { class: "opt", text: t.max == null ? "-" : t.max })));
+    box.append(el("details", { class: "subscribe" }, el("summary", { text: "Qué necesita cada equipo" }),
+      el("div", { class: "tablewrap" }, el("table", { class: "std split" }, el("thead", null, head), el("tbody", null, body))),
+      el("p", { class: "liga-help", text: "La situación se calcula con puntos: un empate en puntos con otro equipo se cuenta como posible, porque el desempate lo define la liga. Las series se simulan a ida y vuelta; el mejor ubicado cierra de local." })));
   }
 
   // ---------- jugadores ----------
@@ -647,7 +727,7 @@
     } else {
       renderBoard(); renderMatches();
     }
-    renderStandings(); renderPerformance(); renderPlayers(); renderNews(); renderFooter();
+    renderStandings(); renderLiguilla(); renderPerformance(); renderPlayers(); renderNews(); renderFooter();
     schedule();
   }
   function schedule() {
