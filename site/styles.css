@@ -409,3 +409,6 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .h2h-rec { display: flex; justify-content: space-between; gap: .5rem; margin: .3rem 0; font-size: .82rem; }
 .h2h-rec span { display: grid; gap: 1px; text-align: center; }
 .h2h-rec strong { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.std.need .team { min-width: 0; align-items: flex-start; }
+.std.need .team > span { text-align: left; line-height: 1.25; }
+.std.need td, .std.need th { padding-left: 4px; padding-right: 4px; }

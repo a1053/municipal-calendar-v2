@@ -454,7 +454,7 @@
       el("td", { text: t.left == null ? "-" : t.left }),
       el("td", { class: "opt", text: t.max == null ? "-" : t.max })));
     box.append(el("details", { class: "subscribe" }, el("summary", { text: "Qué necesita cada equipo" }),
-      el("div", { class: "tablewrap" }, el("table", { class: "std split" }, el("thead", null, head), el("tbody", null, body))),
+      el("div", { class: "tablewrap" }, el("table", { class: "std need" }, el("thead", null, head), el("tbody", null, body))),
       el("p", { class: "liga-help", text: "La situación se calcula con puntos: un empate en puntos con otro equipo se cuenta como posible, porque el desempate lo define la liga. Las series se simulan a ida y vuelta; el mejor ubicado cierra de local." })));
   }
 
