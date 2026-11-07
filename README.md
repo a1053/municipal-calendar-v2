@@ -152,3 +152,7 @@ En cada corrida el sitio guarda una foto de Municipal (posición, puntos, partid
 ## Dónde verlo y calendario de los rivales
 
 Si ESPN publica el canal o la plataforma de un partido (campo `broadcasts` en `matches.json`), se muestra "Dónde verlo" en el marcador y en la página del partido; si no lo trae, no se muestra nada. En Liguilla, el desplegable "Calendario que les falta" lista los partidos con fecha de los equipos de arriba y una dificultad (promedio de puntos por partido de los rivales que les faltan, en tercios: difícil, medio y fácil). Solo usa partidos del calendario de la liga, nunca los repartidos al azar; si el calendario no está disponible, el desplegable no aparece.
+
+## Historial contra el rival
+
+En la página del próximo partido, "El rival" muestra el historial entre ambos si ESPN lo trae (`headToHeadGames` en el resumen del partido): balance de victorias, empates y derrotas y los últimos cinco partidos. Si ESPN no lo da, no aparece. Incluye un enlace a la página de Municipal en FotMob; el sitio no lee ni copia datos de FotMob.

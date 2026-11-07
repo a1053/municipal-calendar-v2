@@ -405,3 +405,7 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .sched-list li.me .sched-head strong { color: var(--rojo-texto); }
 .diff { font-size: .75rem; font-weight: 700; padding: .1rem .5rem; border-radius: 99px; border: 1px solid currentColor; }
 .diff.hard { color: var(--loss); } .diff.easy { color: var(--win); } .diff.mid { color: var(--muted); }
+
+.h2h-rec { display: flex; justify-content: space-between; gap: .5rem; margin: .3rem 0; font-size: .82rem; }
+.h2h-rec span { display: grid; gap: 1px; text-align: center; }
+.h2h-rec strong { font-size: 1.4rem; font-variant-numeric: tabular-nums; }

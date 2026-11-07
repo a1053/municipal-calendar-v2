@@ -328,7 +328,9 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
     used, ok, failed = [], 0, 0
     for m in wanted:
         try:
-            detail = sd.parse_summary(_get_json(sd.SUMMARY_URL.format(slug=m["slug"], id=m["id"])), m)
+            raw = _get_json(sd.SUMMARY_URL.format(slug=m["slug"], id=m["id"]))
+            detail = sd.parse_summary(raw, m)
+            h2h = sd.parse_h2h(raw, cal.TEAM_ID, m) if m is nxt else None
         except Exception as exc:  # noqa: BLE001
             failed += 1
             print(f"Aviso: sin detalle del partido {m['id']} ({type(exc).__name__})")
@@ -341,7 +343,7 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
             except Exception as exc:  # noqa: BLE001
                 print(f"Aviso: sin calendario del rival ({type(exc).__name__})")
                 rival_events = {}
-            rival = sd.build_rival(m, cal.TEAM_ID, standings, rival_events, matches)
+            rival = sd.build_rival(m, cal.TEAM_ID, standings, rival_events, matches, h2h)
         if not detail["has_data"] and not rival:
             continue
         ok += 1

@@ -661,10 +661,20 @@
         el("div", null, el("strong", { text: r.name }), bits.length ? el("div", { class: "meta", text: bits.join(", ") }) : null)),
       r.form && r.form.length ? el("p", { class: "form" }, el("span", { text: "Sus últimos partidos:" }),
         ...r.form.map((f) => el("span", { class: `chip ${f.result}`, title: `${f.home ? "Local" : "Visitante"} contra ${f.vs}, ${f.score}`, text: f.result }))) : null,
+      r.h2h && r.h2h.record ? el("div", { class: "h2h" }, el("h3", { text: "Historial entre ambos" }),
+        el("p", { class: "h2h-rec" },
+          el("span", null, el("strong", { text: r.h2h.record.g }), " ganó Municipal"),
+          el("span", null, el("strong", { text: r.h2h.record.e }), " empates"),
+          el("span", null, el("strong", { text: r.h2h.record.p }), ` ganó ${r.name}`)),
+        el("p", { class: "meta", text: `En ${r.h2h.record.total} partidos que registra ESPN.` }),
+        el("ul", { class: "plain" }, ...(r.h2h.last || []).map((x) => el("li", null,
+          el("span", { text: `${x.home} ${x.score} ${x.away}` }),
+          el("span", { class: "meta", text: [x.start && !isNaN(Date.parse(x.start)) ? `, ${fDay(new Date(x.start))}` : "", x.competition ? `, ${x.competition}` : ""].join("") }))))) : null,
       r.meetings && r.meetings.length ? el("div", null, el("h3", { text: "Se enfrentaron esta temporada" }),
         el("ul", { class: "plain" }, ...r.meetings.map((x) => el("li", null,
           el("a", { href: `#/partido/${x.id}`, text: `${x.home} ${x.score} ${x.away}` }),
-          el("span", { class: "meta", text: `, ${fDay(new Date(x.start))}` }))))) : null);
+          el("span", { class: "meta", text: `, ${fDay(new Date(x.start))}` }))))) : null,
+      el("p", { class: "meta" }, el("a", { href: "https://www.fotmob.com/teams/9933/overview/csd-municipal", target: "_blank", rel: "noopener noreferrer", text: "Ver más estadísticas de Municipal en FotMob" })));
   }
 
   function timeline(m, events) {
