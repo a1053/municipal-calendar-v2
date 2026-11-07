@@ -273,7 +273,7 @@
         el("span", { class: "o-bar", role: "img", "aria-label": `${t.name}: ${pct(t.p_qualify)} de clasificar, ${pct(t.p_direct)} directo` },
           el("span", { class: "o-q", style: `width:${t.p_qualify}%` }), el("span", { class: "o-d", style: `width:${t.p_direct}%` })),
         el("span", { class: "o-pct", text: pct(t.p_qualify) })))),
-      el("p", { class: "liga-help", text: `Estimación con ${od.sims.toLocaleString("es-GT")} simulaciones del resto de la fase regular, ${modes[od.fixtures] || ""}. Cada equipo pesa según sus goles a favor y en contra, con ventaja de local. No considera lesiones, refuerzos ni suspensiones, y el desempate es por diferencia de goles. Son probabilidades, no pronósticos.` }));
+      el("p", { class: "liga-help", text: `Estimación con ${od.sims.toLocaleString("es-GT")} simulaciones del resto de la fase regular, ${modes[od.fixtures] || ""}. Cada equipo pesa según sus goles a favor y en contra, con ventaja de local. No considera lesiones, refuerzos ni suspensiones, y el desempate es por diferencia de goles. Son probabilidades, no pronósticos.${od.updated ? ` Calculadas ${ago(od.updated)}; se recalculan en cada actualización del sitio.` : ""}` }));
   }
   const STATUS = {
     direct: "Semifinales asegurada", qualified: "Liguilla asegurada", alive: "En disputa",
@@ -763,6 +763,7 @@
     if (meta && meta.updated) {
       const bad = Object.entries(meta.sources || {}).filter(([, v]) => v !== "ok").map(([k]) => k);
       p.textContent = `Actualizado ${ago(meta.updated)}, con datos de ESPN, buscadores de noticias y medios guatemaltecos.` +
+        (data.liveAt ? ` Tabla y marcadores al día con ESPN ${ago(data.liveAt)}.` : "") +
         (bad.length ? ` Sin respuesta en la última actualización: ${bad.join(", ")}.` : "");
     }
   }
@@ -774,17 +775,53 @@
     const m = (data.matches.matches || []).find((x) => x.start === box.dataset.next);
     if (m) c.textContent = countdown(m);
   }
+  const LIVE_SLUGS = ["gua.1", "concacaf.central.american.cup", "concacaf.champions"];
+  async function fetchLive(url, ms = 8000) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+    try {
+      const r = await fetch(url, { signal: ctl.signal, cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } finally { clearTimeout(t); }
+  }
+  /** Pone la tabla y los marcadores al día con ESPN. Si falla, no pasa nada: quedan los datos publicados. */
+  async function liveRefresh() {
+    const LV = window.MuniLive;
+    if (!LV) return false;
+    const [st, ...boards] = await Promise.allSettled([fetchLive(LV.standingsUrl("gua.1")),
+      ...LIVE_SLUGS.map((s) => fetchLive(LV.scoreboardUrl(s, Date.now())))]);
+    let changed = false;
+    if (st.status === "fulfilled") {
+      try {
+        const groups = LV.chooseStandings(LV.parseStandings(st.value, config.team_id, config.team), data.standings);
+        if (groups) { data.standings = { groups, stale: false, live: true }; changed = true; }
+      } catch (_) { /* formato inesperado: se ignora */ }
+    }
+    const board = {};
+    boards.forEach((b) => { if (b.status === "fulfilled") { try { Object.assign(board, LV.parseScoreboard(b.value)); } catch (_) { /* ignorar */ } } });
+    if (data.matches && Object.keys(board).length) {
+      const r = LV.mergeMatches(data.matches.matches, board, config.team_id, config.team);
+      if (r.changed) { data.matches = { ...data.matches, matches: r.matches }; changed = true; }
+    }
+    data.liveAt = changed || data.liveAt ? new Date().toISOString() : null;
+    return changed;
+  }
+  function renderAll() {
+    if (data.matches) { renderBoard(); renderMatches(); }
+    renderStandings(); renderLiguilla(); renderPerformance(); renderPlayers(); renderNews(); renderFooter();
+  }
+  let loaded = false;
   async function load() {
     const names = ["matches", "standings", "news", "meta", "players", "odds"];
     const res = await Promise.allSettled(names.map(getJson));
     names.forEach((n, i) => { if (res[i].status === "fulfilled") data[n] = res[i].value; });
     if (res[0].status === "rejected" && !data.matches) {
       $("board").replaceChildren(el("p", { class: "board-msg", text: "No se pudieron cargar los partidos. Recarga la página en unos minutos." }));
-    } else {
-      renderBoard(); renderMatches();
     }
-    renderStandings(); renderLiguilla(); renderPerformance(); renderPlayers(); renderNews(); renderFooter();
+    if (loaded) await liveRefresh(); // ya hay datos en pantalla: se actualiza todo junto, sin parpadeo
+    renderAll();
     schedule();
+    if (!loaded) { loaded = true; if (await liveRefresh()) { renderAll(); if ($("home").hidden) route(); } }
   }
   function schedule() {
     clearTimeout(timer);

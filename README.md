@@ -140,3 +140,7 @@ La sección **Liguilla** arma la llave del Apertura con la tabla actual: 1.º y 
 ## Instalar como app
 
 El sitio se puede instalar en el celular ("Agregar a pantalla de inicio" o "Instalar app"). Incluye `manifest.webmanifest`, íconos en `site/icons/` (se regeneran con `python scripts/make_icons.py`) y `site/sw.js`, que pide todo primero a internet y, si no hay conexión, muestra lo último que se vio. El ícono es una "M", no el escudo del club.
+
+## Datos en vivo desde el navegador
+
+GitHub retrasa las corridas programadas (a veces horas), así que `site/live.js` pone la tabla y los marcadores al día directamente con ESPN cada vez que se abre o refresca la página (cada 3 minutos, o 45 segundos con partido en vivo). Si ESPN no responde o cambia su formato, el sitio muestra los datos de la última corrida. Las probabilidades de la liguilla se siguen calculando en cada corrida del sitio y la página indica cuándo. Pruebas: `tests/live.test.js`.
