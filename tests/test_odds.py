@@ -88,6 +88,24 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class ScheduleTests(unittest.TestCase):
+    def test_difficulty_from_known_fixtures(self):
+        rows = table([30, 20, 10, 5, 4, 3, 2, 1, 0, 0, 0, 0], pj=14)
+        known = [("3", "1"), ("2", "1"), ("1", "12")]
+        s = o.upcoming_schedule(rows, known, 22)
+        self.assertEqual([f["opp"] for f in s["1"]["fixtures"]], ["3", "2", "12"])
+        self.assertEqual([f["home"] for f in s["1"]["fixtures"]], [False, False, True])
+        self.assertEqual(s["1"]["sos"], 0.71)   # (10/14 + 20/14 + 0) / 3: rivales de poco puntaje
+        self.assertEqual(s["2"]["sos"], 2.14)   # solo enfrenta al líder: calendario más difícil
+        self.assertEqual(s["2"]["sos_rank"], 1)
+        self.assertEqual(s["1"]["sos_rank"], 4)
+        self.assertIsNone(s["5"]["sos"])
+        r = o.build_odds(rows, {"events": [event("1", "3", "1")]}, sims=300)
+        t = {x["team_id"]: x for x in r["teams"]}
+        self.assertEqual(t["1"]["fixtures"], [{"opp": "3", "home": False}])
+        self.assertEqual(o.build_odds(rows, None, sims=300)["teams"][0]["fixtures"], [])
+
+
 class HistoryTests(unittest.TestCase):
     def odds(self, pts=28, pj=14, pos=1, q=90.0, stale=False):
         t = {"is_municipal": True, "pj": pj, "pts": pts, "pos": pos, "p_qualify": q, "p_direct": q / 2}

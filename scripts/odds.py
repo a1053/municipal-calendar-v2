@@ -98,6 +98,31 @@ def complete_fixtures(rows: list[dict], known: list[tuple[str, str]], rounds: in
     return fixtures, mode
 
 
+def upcoming_schedule(rows: list[dict], known: list[tuple[str, str]], rounds: int) -> dict:
+    """Partidos con fecha que le faltan a cada equipo y qué tan difíciles son los rivales.
+
+    Solo cuenta lo que trae el calendario de la liga (nunca los repartidos al azar).
+    Dificultad = promedio de puntos por partido de los rivales: más alto, más difícil.
+    """
+    left = {r["team_id"]: max(0, rounds - (r["pj"] or 0)) for r in rows}
+    ppg = {r["team_id"]: (r["pts"] / r["pj"]) if r["pj"] else 0.0 for r in rows}
+    out = {r["team_id"]: [] for r in rows}
+    for h, a in known:
+        if left[h] > 0 and left[a] > 0:
+            out[h].append({"opp": a, "home": True})
+            out[a].append({"opp": h, "home": False})
+            left[h] -= 1
+            left[a] -= 1
+    result = {}
+    for tid, fx in out.items():
+        sos = round(sum(ppg[f["opp"]] for f in fx) / len(fx), 2) if fx else None
+        result[tid] = {"fixtures": fx, "sos": sos}
+    ranked = sorted((t for t, v in result.items() if v["sos"] is not None), key=lambda t: -result[t]["sos"])
+    for i, tid in enumerate(ranked, 1):
+        result[tid]["sos_rank"] = i
+    return result
+
+
 def simulate(rows: list[dict], fixtures: list[tuple[str, str]], sims: int = DEFAULT_SIMS,
              qualify: int = 6, direct: int = 2, seed: int = 1) -> dict:
     rng = random.Random(seed)
@@ -172,6 +197,10 @@ def build_odds(rows: list[dict], scoreboard: dict | None, rounds: int = 22, qual
     known = fixtures_from_scoreboard(scoreboard or {}, {r["team_id"] for r in rows})
     fixtures, mode = complete_fixtures(rows, known, rounds, rng)
     res = simulate(rows, fixtures, sims, qualify, direct, seed)
+    sched = upcoming_schedule(rows, known, rounds)
+    for t in res["teams"]:
+        t.update({"fixtures": sched[t["team_id"]]["fixtures"], "sos": sched[t["team_id"]]["sos"],
+                  "sos_rank": sched[t["team_id"]].get("sos_rank")})
     res.update({"fixtures": mode, "fixtures_total": len(fixtures), "fixtures_known": len(known),
                 "regular_rounds": rounds, "qualify": qualify, "direct": direct})
     return res

@@ -95,6 +95,26 @@ def _get_json(url: str):
 # --------------------------------------------------------------------------
 # Partidos con marcador
 # --------------------------------------------------------------------------
+def broadcasts_from(comp: dict) -> list[str]:
+    """Canales o plataformas donde se transmite (ESPN los trae en formas distintas)."""
+    names: list[str] = []
+
+    def add(value):
+        if isinstance(value, str) and value.strip() and value.strip() not in names:
+            names.append(value.strip())
+
+    for key in ("broadcasts", "geoBroadcasts"):
+        for b in comp.get(key) or []:
+            if not isinstance(b, dict):
+                continue
+            media = b.get("media") if isinstance(b.get("media"), dict) else {}
+            add(media.get("shortName") or media.get("name"))
+            add(b.get("name") if isinstance(b.get("name"), str) else None)
+            for n in b.get("names") or []:
+                add(n)
+    return names[:4]
+
+
 def events_from_api(obj: dict, competition: str, slug: str = "") -> dict:
     out: dict[str, dict] = {}
     for ev in (obj or {}).get("events", []):
@@ -141,6 +161,7 @@ def events_from_api(obj: dict, competition: str, slug: str = "") -> dict:
             "postponed": postponed,
             "status": stype.get("shortDetail") or stype.get("detail") or stype.get("description") or "",
             "clock": status.get("displayClock") or "",
+            "broadcasts": broadcasts_from(comp),
             "home": {k: home[k] for k in ("id", "name", "logo", "score")},
             "away": {k: away[k] for k in ("id", "name", "logo", "score")},
             "url": f"https://www.espn.com.gt/futbol/partido/_/juegoId/{gid}",

@@ -119,7 +119,9 @@
         el("div", { class: "side" }, badge(m.home), el("span", { class: "nm", text: m.home.name })),
         center,
         el("div", { class: "side" }, badge(m.away), el("span", { class: "nm", text: m.away.name }))),
-      el("p", { class: "where", text: [fDayLong(d), compLabel(m.competition), m.venue].filter(Boolean).join(", ") }));
+      el("p", { class: "where", text: [fDayLong(d), compLabel(m.competition), m.venue].filter(Boolean).join(", ") }),
+      m.state !== "post" && m.broadcasts && m.broadcasts.length
+        ? el("p", { class: "where tv", text: `Dónde verlo: ${m.broadcasts.join(", ")}` }) : "");
   }
 
   function renderBoard() {
@@ -275,6 +277,27 @@
         el("span", { class: "o-pct", text: pct(t.p_qualify) })))),
       el("p", { class: "liga-help", text: `Estimación con ${od.sims.toLocaleString("es-GT")} simulaciones del resto de la fase regular, ${modes[od.fixtures] || ""}. Cada equipo pesa según sus goles a favor y en contra, con ventaja de local. No considera lesiones, refuerzos ni suspensiones, y el desempate es por diferencia de goles. Son probabilidades, no pronósticos.${od.updated ? ` Calculadas ${ago(od.updated)}; se recalculan en cada actualización del sitio.` : ""}` }));
   }
+  /** Partidos con fecha que les faltan a los equipos que pelean por la liguilla y qué tan difíciles son. */
+  function renderSchedule(od, o) {
+    const byId = Object.fromEntries(od.teams.map((t) => [t.team_id, t]));
+    const withSos = od.teams.filter((t) => t.sos != null);
+    if (od.fixtures === "aleatorio" || !withSos.length) return null;
+    const shown = od.teams.filter((t) => t.pos <= o.qualify + 2 && (t.fixtures || []).length).sort((a, b) => a.pos - b.pos);
+    if (!shown.length) return null;
+    const tag = (t) => {
+      const r = t.sos_rank, n = withSos.length;
+      return r <= n / 3 ? ["Difícil", "hard"] : r > 2 * n / 3 ? ["Fácil", "easy"] : ["Medio", "mid"];
+    };
+    return el("details", { class: "subscribe sched" },
+      el("summary", { text: "Calendario que les falta a los equipos de arriba" }),
+      el("ol", { class: "sched-list" }, ...shown.map((t) => {
+        const [label, cls] = tag(t);
+        return el("li", { class: t.is_municipal ? "me" : null },
+          el("div", { class: "sched-head" }, el("strong", { text: `${t.pos}.º ${t.name}` }), el("span", { class: `diff ${cls}`, text: label })),
+          el("p", { class: "sched-opps" }, ...t.fixtures.map((f) => el("span", { class: "chip-s", text: `${f.home ? "Local" : "Visita"}: ${(byId[f.opp] || {}).name || "?"}` }))));
+      })),
+      el("p", { class: "liga-help", text: "Solo incluye los partidos con fecha en el calendario de la liga. La dificultad compara el promedio de puntos por partido de los rivales que les faltan: más alto, más difícil." }));
+  }
   const SVGNS = "http://www.w3.org/2000/svg";
   const sv = (tag, attrs, ...kids) => {
     const n = document.createElementNS(SVGNS, tag);
@@ -415,6 +438,7 @@
 
     if (od && !pr.done) box.append(renderOdds(od));
     box.append(renderRace(data.history));
+    if (od && !pr.done) { const sc = renderSchedule(od, o); if (sc) box.append(sc); }
 
     // situación de cada equipo
     const st = L.situation(rows, o);

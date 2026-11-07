@@ -148,3 +148,7 @@ GitHub retrasa las corridas programadas (a veces horas), así que `site/live.js`
 ## Carrera a la liguilla
 
 En cada corrida el sitio guarda una foto de Municipal (posición, puntos, partidos jugados y probabilidades de clasificar y de pasar directo) en `data/history.json`. Para que la historia sobreviva entre publicaciones, el flujo descarga el `history.json` ya publicado antes de construir. La gráfica de la sección Liguilla dibuja esa historia; arranca vacía y se llena con el tiempo. Si la posición, los puntos y los partidos no cambian, se reemplaza la última foto en vez de acumular una por corrida (máximo 800). Pruebas en `tests/test_odds.py`.
+
+## Dónde verlo y calendario de los rivales
+
+Si ESPN publica el canal o la plataforma de un partido (campo `broadcasts` en `matches.json`), se muestra "Dónde verlo" en el marcador y en la página del partido; si no lo trae, no se muestra nada. En Liguilla, el desplegable "Calendario que les falta" lista los partidos con fecha de los equipos de arriba y una dificultad (promedio de puntos por partido de los rivales que les faltan, en tercios: difícil, medio y fácil). Solo usa partidos del calendario de la liga, nunca los repartidos al azar; si el calendario no está disponible, el desplegable no aparece.
