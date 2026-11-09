@@ -167,3 +167,19 @@ En la página del próximo partido, "El rival" muestra el historial entre ambos 
 ## Minuto a minuto (complemento)
 
 Si ESPN trae el minuto a minuto (`commentary`), la página del partido lo muestra en un desplegable "Minuto a minuto", debajo de la cronología. Es un complemento: no cambia ni quita nada de la cronología, las estadísticas ni las alineaciones que ya vienen de ESPN. Si ESPN no lo trae, no aparece.
+
+## Eventos y alineaciones de OneFootball (complemento)
+
+ESPN no publica todos los eventos ni las alineaciones de la Liga Nacional. Cuando faltan, el sitio los
+completa con los datos públicos de OneFootball (`scripts/onefootball.py`):
+
+- **Cronología:** si ESPN no trae eventos, se muestran los de OneFootball con su crédito. Si ESPN trae menos
+  eventos, se deja lo de ESPN tal cual y se agrega "Todos los eventos" plegado.
+- **Alineaciones:** si ESPN no las tiene, se muestran los 11 titulares de OneFootball (sin formación en la cancha).
+- Nunca se cambia lo que ya trae ESPN. Si OneFootball falla o cambia su formato, el sitio sigue igual.
+- Pocos pedidos: 3 páginas del equipo por corrida, más los partidos que aún no tenemos. Los partidos terminados
+  se guardan en `data/onefootball.json` y no se vuelven a pedir.
+- Se empareja con el partido de ESPN por hora (±6 h) y nombres de equipos.
+- Cada bloque lleva el enlace "Datos de OneFootball".
+
+También se corrigió que el "Minuto a minuto" de ESPN se leía pero no se guardaba en el JSON de cada partido.

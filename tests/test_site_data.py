@@ -144,7 +144,8 @@ class BuildTests(unittest.TestCase):
                 mock.patch.object(b.cal, "fetch_api", fetch_api), \
                 mock.patch.object(b, "_get_json", get_json), \
                 mock.patch("requests.get", side_effect=RuntimeError("sin red")), \
-                mock.patch.object(b.cal, "load_db", return_value={}):
+                mock.patch.object(b.cal, "load_db", return_value={}), \
+                mock.patch.object(b.of_source, "collect", return_value=({}, None)):
             code = b.build(Path(d) / "data", prev, self.NOW)
             files = {p.name: p.read_text(encoding="utf-8") for p in (Path(d) / "data").glob("*.json")}
         return code, files
