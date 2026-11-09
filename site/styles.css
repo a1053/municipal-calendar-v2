@@ -226,8 +226,12 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 }
 
 /* Jugadores */
-.pl { display: flex; align-items: baseline; gap: 8px; min-width: 9rem; }
-.jersey { display: inline-block; min-width: 1.6rem; text-align: right; font: 800 1rem/1 var(--font-display); color: var(--muted); }
+.pcell { display: flex; align-items: center; gap: 10px; min-width: 9rem; }
+.jersey {
+  display: inline-grid; place-items: center; flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  background: var(--surface); font: 800 .95rem/1 var(--font-display); color: var(--ink);
+}
+.jersey:empty { visibility: hidden; }
 .pname { font-weight: 500; }
 .ppos { font-size: .75rem; color: var(--muted); }
 .std.players caption { padding-bottom: 8px; }
