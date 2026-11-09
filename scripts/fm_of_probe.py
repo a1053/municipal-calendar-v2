@@ -9,35 +9,56 @@ def page(url):
     m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', h, re.S)
     return h, json.loads(m.group(1)) if m else None
 
-h, nd = page("https://onefootball.com/es/equipo/csd-municipal-6195/partidos")
-ids = re.findall(r'/es/partido/(\d+)', h)
-print("ids:", sorted(set(ids)))
-# estados de partidos en la página del equipo
-def walk(o, path="", out=None, pat=None, depth=0):
-    if out is None: out = []
-    if depth > 14: return out
-    if isinstance(o, dict):
-        for k, v in o.items():
-            p = f"{path}.{k}"
-            if pat.search(k): out.append((p, v))
-            walk(v, p, out, pat, depth + 1)
-    elif isinstance(o, list):
-        for i, v in enumerate(o[:60]):
-            walk(v, f"{path}[{i}]", out, pat, depth + 1)
+
+ids = set()
+for suffix in ("resultados", "partidos", ""):
+    try:
+        h, _ = page("https://onefootball.com/es/equipo/csd-municipal-6195" + ("/" + suffix if suffix else ""))
+        found = set(re.findall(r'/es/partido/(\d+)', h))
+        print("pagina", suffix or "home", "ids:", sorted(found))
+        ids |= found
+    except Exception as e:  # noqa: BLE001
+        print("pagina", suffix, "error", type(e).__name__, getattr(e, "code", ""))
+
+def comps(d):
+    out = []
+    for i, c in enumerate((d["props"]["pageProps"].get("containers") or [])):
+        def rec(o, depth=0):
+            if isinstance(o, dict):
+                for k, v in o.items():
+                    if k == "contentType" and isinstance(v, dict):
+                        out.append((i, list(v)))
+                    rec(v, depth + 1)
+            elif isinstance(o, list):
+                for v in o: rec(v, depth + 1)
+        rec(c)
     return out
 
-def show(label, nd, pat, n=14):
-    print("==", label)
-    for p, v in walk(nd, "", None, re.compile(pat, re.I))[:n]:
-        s = json.dumps(v, ensure_ascii=False)
-        print(" ", p[:110], "=>", (s[:260] + "…") if len(s) > 260 else s)
+def find(o, key):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k == key: yield v
+            yield from find(v, key)
+    elif isinstance(o, list):
+        for v in o: yield from find(v, key)
 
-# probamos todos los partidos hasta hallar uno jugado
-for mid in sorted(set(ids)):
-    h2, d2 = page(f"https://onefootball.com/es/partido/{mid}")
-    txt = json.dumps(d2)
-    print("\n##### partido", mid, "| eventos(goal):", len(re.findall(r'"goal', txt, re.I)), "| len", len(txt))
-    show("timeline/events", d2, r"^(events|timeline|matchEvents|keyEvents)$", 4)
-    show("lineup", d2, r"lineup|formation", 6)
-    show("marcador/estado", d2, r"^(score|period|matchState|status)$", 6)
-    break
+shown = 0
+for mid in sorted(ids):
+    try:
+        _, d = page(f"https://onefootball.com/es/partido/{mid}")
+    except Exception as e:  # noqa: BLE001
+        print(mid, "error", getattr(e, "code", type(e).__name__)); continue
+    sc = next(find(d, "matchScore"), None) or {}
+    hs = (sc.get("homeTeam") or {}).get("score"); as_ = (sc.get("awayTeam") or {}).get("score")
+    lu = next(find(d, "matchLineup"), None)
+    variant = list((lu or {}).get("variant", {}))[:2]
+    print("partido", mid, "marcador", hs, as_, "| alineación variante:", variant)
+    if hs not in (None, "-", "") and shown < 1:
+        shown += 1
+        print(" componentes (contenedor, claves):", comps(d))
+        if lu:
+            print(" matchLineup:", json.dumps(lu, ensure_ascii=False)[:1800])
+        for key in ("matchEvents", "matchTimeline", "matchSummary", "keyEvents", "events", "matchFacts"):
+            v = next(find(d, key), None)
+            if v is not None:
+                print(" ", key, "=>", json.dumps(v, ensure_ascii=False)[:1800])
