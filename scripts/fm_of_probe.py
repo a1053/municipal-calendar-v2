@@ -17,7 +17,7 @@ def find(o, key):
             yield from find(v, key)
     elif isinstance(o, list):
         for v in o: yield from find(v, key)
-_, h = get("https://onefootball.com/es/equipo/csd-municipal-6195/resultados")
+st, h = get("https://onefootball.com/es/equipo/csd-municipal-6195/resultados"); print("resultados:", st, len(h))
 ids = sorted(set(re.findall(r"/es/partido/(\d+)", h)))
 variants, comps, names, order = {}, {}, set(), []
 for i in ids:
