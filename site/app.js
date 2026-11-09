@@ -145,6 +145,11 @@
         el("strong", { text: `${last.home.name} ${last.home.score ?? "-"} - ${last.away.score ?? "-"} ${last.away.name}` }),
         last.result ? chip(last.result) : null));
     }
+    const recent = results.filter((m) => m.result).slice(0, 5).reverse();
+    if (recent.length) {
+      box.append(el("p", { class: "streak", "aria-label": `Últimos ${recent.length} partidos` },
+        el("span", { text: "Últimos partidos" }), ...recent.map((x) => chip(x.result))));
+    }
     box.dataset.next = next ? next.start : "";
   }
 
@@ -182,7 +187,7 @@
     const meta = [m.postponed ? "Aplazado" : "", compLabel(m.competition), m.venue].filter(Boolean).join(", ");
     const internal = m.detail;
     return el("li", null,
-      el("a", { class: "m", href: matchHref(m), target: internal ? null : "_blank", rel: internal ? null : "noopener" },
+      el("a", { class: `m${m.result ? ` r-${m.result}` : ""}${m.state === "in" ? " live" : ""}`, href: matchHref(m), target: internal ? null : "_blank", rel: internal ? null : "noopener" },
         el("div", { class: "when" }, el("span", { class: "d", text: fDay(d) }), el("span", { text: fTime(d) })),
         el("div", null, row(m.home), row(m.away), el("div", { class: "meta", text: meta })),
         m.result ? chip(m.result) : el("span")));
@@ -396,6 +401,28 @@
     direct: "Semifinales asegurada", qualified: "Liguilla asegurada", alive: "En disputa",
     "no-direct": "Sin directo posible", out: "Eliminado", unknown: "",
   };
+  /** Los datos de Municipal en la liguilla, en grande: posición, puntos, probabilidades y partidos que faltan. */
+  function ligaTiles(rows, o, me, pr) {
+    const L = window.MuniLiguilla;
+    const mine = L.situation(rows, o).find((t) => t.is_municipal || String(t.team_id) === String(config.team_id));
+    if (!mine) return null;
+    const zone = mine.pos <= o.direct ? "Directo a semifinales" : mine.pos <= o.qualify ? "Dentro de los 6" : "Fuera de los 6";
+    const tile = (label, value, sub, extra) => el("div", { class: `tile${extra || ""}` },
+      el("span", { class: "tile-l", text: label }), el("strong", { class: "tile-v", text: value }), sub ? el("span", { class: "tile-s", text: sub }) : null);
+    const ring = (label, n, sub) => el("div", { class: "tile ring-tile" },
+      el("div", { class: "ring", style: `--p:${Math.max(0, Math.min(100, Math.round(n)))}`, role: "img", "aria-label": `${label}: ${pct(n)}` },
+        el("strong", { text: pct(n) })),
+      el("span", { class: "tile-l", text: label }), el("span", { class: "tile-s", text: sub }));
+    const list = [
+      tile("Posición", `${mine.pos}.º`, zone, " first"),
+      tile("Puntos", mine.pts == null ? "-" : mine.pts, mine.pj == null ? "" : `en ${mine.pj} partidos`),
+      me && !pr.done ? ring("Clasifica", me.p_qualify, "a la liguilla") : null,
+      me && !pr.done ? ring("Directo", me.p_direct, "a semifinales") : null,
+      mine.left == null ? null : tile(mine.left === 1 ? "Falta" : "Faltan", mine.left, mine.left === 1 ? "partido" : "partidos"),
+    ];
+    return el("div", { class: "tiles" }, ...list);
+  }
+
   function renderLiguilla() {
     const box = $("liga-box");
     box.replaceChildren();
@@ -417,7 +444,10 @@
     if (me && !pr.done) sum.push(`Según la simulación, ${me.name} tiene ${pct(me.p_qualify)} de probabilidad de clasificar a la liguilla y ${pct(me.p_direct)} de pasar directo a semifinales.`);
     const shareLiga = window.MuniShare && sum.length ? el("p", { class: "actions" }, waButton(window.MuniShare.ligaText(sum, me, {
       tournament: (config.liguilla && config.liguilla.tournament) || "", url: siteUrl() + "#liguilla" }), "Compartir la liguilla por WhatsApp")) : null;
-    if (sum.length) box.append(el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t }))), shareLiga);
+    const tiles = ligaTiles(rows, o, me, pr);
+    if (tiles) box.append(tiles);
+    if (sum.length) box.append(el("details", { class: "liga-more" }, el("summary", { text: "Ver el detalle en palabras" }),
+      el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t })))), shareLiga);
 
     // llave interactiva
     const b = L.bracket(rows, ligaPicks, o);
