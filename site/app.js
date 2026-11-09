@@ -734,6 +734,16 @@
     })));
   }
 
+  /** Minuto a minuto de ESPN, plegado: complementa la cronología sin cambiarla. */
+  function commentaryBlock(m, items) {
+    if (!items || !items.length) return null;
+    const list = items.slice().reverse(); // lo más reciente arriba
+    return section("Minuto a minuto", el("details", null,
+      el("summary", { text: `Ver las jugadas (${items.length})` }),
+      el("ol", { class: "comm" }, ...list.map((c) => el("li", { class: c.team_id === m.home.id ? "h" : c.team_id === m.away.id ? "a" : "" },
+        el("span", { class: "ev-min", text: c.min }), el("span", { class: "ctext", text: c.text }))))));
+  }
+
   function statsBlock(m, stats) {
     if (!stats.length) return null;
     const meHome = isMe(m.home);
@@ -810,6 +820,7 @@
     const parts = detail ? [
       m.state === "pre" && detail.rival ? rivalBlock(detail.rival) : null,
       timeline(m, detail.events || []),
+      commentaryBlock(m, detail.commentary),
       statsBlock(m, detail.stats || []),
       lineupsBlock(m, detail.lineups || []),
     ].filter(Boolean) : [];

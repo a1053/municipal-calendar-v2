@@ -105,6 +105,21 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(sd._int("7"), 7)
         self.assertEqual(sd._int(None), 0)
 
+    def test_commentary_is_added_and_does_not_touch_events(self):
+        obj = {**SUMMARY, "commentary": [
+            {"sequence": 3, "time": {"value": 1850, "displayValue": "31'"}, "text": "Falta de Ruiz.", "play": {"type": {"text": "Foul"}, "team": {"id": "7258"}}},
+            {"sequence": 1, "time": {"value": 60, "displayValue": "1'"}, "text": "Comienza el partido."},
+            {"sequence": 2, "time": {"value": 60, "displayValue": "1'"}, "text": "Comienza el partido."},   # repetido
+            {"sequence": 4, "text": ""}, "raro", {"sequence": 5, "play": {"text": "Tiro de esquina."}}]}
+        base = sd.parse_summary(SUMMARY, match())
+        full = sd.parse_summary(obj, match())
+        self.assertEqual(full["events"], base["events"])
+        self.assertEqual([c["text"] for c in full["commentary"]], ["Comienza el partido.", "Tiro de esquina.", "Falta de Ruiz."])
+        self.assertEqual(full["commentary"][2]["kind"], "Foul")   # la jugada sin hora queda junto a la anterior
+        self.assertEqual(base["commentary"], [])
+        only = sd.parse_summary({"commentary": [{"text": "Hola", "time": {"displayValue": "5'", "value": 300}}]}, match())
+        self.assertTrue(only["has_data"])
+
     def test_stats_aligned_by_team_and_labeled(self):
         st = sd.parse_stats(SUMMARY, MUNI, RIVAL)
         self.assertEqual([s["label"] for s in st], ["Posesión", "Tiros"])

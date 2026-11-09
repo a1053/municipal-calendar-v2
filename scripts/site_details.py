@@ -145,13 +145,42 @@ def parse_stats(obj: dict, home_id: str, away_id: str) -> list[dict]:
     return out
 
 
+COMMENTARY_LIMIT = 250
+
+
+def parse_commentary(obj: dict) -> list[dict]:
+    """Minuto a minuto de ESPN (`commentary`), si lo trae. Complementa la cronología, no la reemplaza."""
+    out, seen, last = [], set(), 0.0
+    for i, c in enumerate((obj or {}).get("commentary") or []):
+        if not isinstance(c, dict):
+            continue
+        text = str(c.get("text") or (c.get("play") or {}).get("text") or "").strip()
+        if not text:
+            continue
+        clock = c.get("time") if isinstance(c.get("time"), dict) else {}
+        play = c.get("play") if isinstance(c.get("play"), dict) else {}
+        ptype = play.get("type") if isinstance(play.get("type"), dict) else {}
+        key = (clock.get("displayValue"), text)
+        if key in seen:
+            continue
+        seen.add(key)
+        t = _num(clock.get("value"))
+        last = t if t is not None else last  # sin hora: queda junto a la jugada anterior
+        out.append({"min": str(clock.get("displayValue") or ""), "sort": last,
+                    "seq": _int(c.get("sequence")) or i, "kind": str(ptype.get("text") or ""),
+                    "team_id": str((play.get("team") or {}).get("id", "")), "text": text})
+    out.sort(key=lambda e: (e["sort"], e["seq"]))
+    return out[-COMMENTARY_LIMIT:]
+
+
 def parse_summary(obj: dict, match: dict) -> dict:
     detail = {
         "events": parse_events(obj),
+        "commentary": parse_commentary(obj),
         "lineups": parse_lineups(obj),
         "stats": parse_stats(obj, match["home"]["id"], match["away"]["id"]),
     }
-    detail["has_data"] = bool(detail["events"] or detail["lineups"] or detail["stats"])
+    detail["has_data"] = bool(detail["events"] or detail["lineups"] or detail["stats"] or detail["commentary"])
     return detail
 
 
