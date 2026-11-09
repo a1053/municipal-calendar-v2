@@ -1,63 +1,43 @@
-"""Prueba (solo lectura) de FotMob y OneFootball desde GitHub Actions: ¿responden y traen eventos/alineaciones?"""
-import json, re, urllib.request, urllib.parse
+"""Explora la estructura de datos de OneFootball (solo lectura)."""
+import json, re, urllib.request
 
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36", "Accept-Language": "es"}
 
-def get(url, headers=None, raw=False):
-    try:
-        req = urllib.request.Request(url, headers={**UA, **(headers or {})})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            body = r.read().decode("utf-8", "replace")
-            return r.status, body if raw else json.loads(body)
-    except Exception as e:  # noqa: BLE001
-        return getattr(e, "code", type(e).__name__), None
+def page(url):
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as r:
+        h = r.read().decode("utf-8", "replace")
+    m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', h, re.S)
+    return h, json.loads(m.group(1)) if m else None
 
-def keys(o, n=12):
-    return list(o)[:n] if isinstance(o, dict) else type(o).__name__
+h, nd = page("https://onefootball.com/es/equipo/csd-municipal-6195/partidos")
+ids = re.findall(r'/es/partido/(\d+)', h)
+print("ids:", sorted(set(ids)))
+# estados de partidos en la página del equipo
+def walk(o, path="", out=None, pat=None, depth=0):
+    if out is None: out = []
+    if depth > 14: return out
+    if isinstance(o, dict):
+        for k, v in o.items():
+            p = f"{path}.{k}"
+            if pat.search(k): out.append((p, v))
+            walk(v, p, out, pat, depth + 1)
+    elif isinstance(o, list):
+        for i, v in enumerate(o[:60]):
+            walk(v, f"{path}[{i}]", out, pat, depth + 1)
+    return out
 
-print("== FotMob")
-s, d = get("https://www.fotmob.com/api/searchapi/suggest?term=municipal&lang=es")
-print(" buscar:", s, keys(d))
-team_id = None
-if d:
-    txt = json.dumps(d)[:600]
-    print(" muestra:", txt)
-    m = re.search(r'"id":\s*"?(\d+)"?[^{}]*"name":\s*"CSD Municipal"', json.dumps(d))
-    team_id = m.group(1) if m else None
-for tid in ([team_id] if team_id else []) + ["583560"]:
-    s, d = get(f"https://www.fotmob.com/api/teams?id={tid}&ccode3=GTM")
-    print(" equipo", tid, s, keys(d))
-    if isinstance(d, dict):
-        det = d.get("details") or {}
-        print("  nombre:", det.get("name"), "| liga:", (det.get("primaryLeagueName")))
-        fx = ((d.get("fixtures") or {}).get("allFixtures") or {}).get("fixtures") or []
-        past = [f for f in fx if (f.get("status") or {}).get("finished")]
-        print("  partidos:", len(fx), "| jugados:", len(past))
-        for f in past[-2:]:
-            mid = f.get("id")
-            s2, md = get(f"https://www.fotmob.com/api/matchDetails?matchId={mid}")
-            print("  detalle", mid, s2, keys(md))
-            if isinstance(md, dict):
-                c = md.get("content") or {}
-                ev = ((c.get("matchFacts") or {}).get("events") or {}).get("events") or []
-                lu = c.get("lineup") or {}
-                print("   eventos:", len(ev), "| alineación:", keys(lu, 6))
-        break
+def show(label, nd, pat, n=14):
+    print("==", label)
+    for p, v in walk(nd, "", None, re.compile(pat, re.I))[:n]:
+        s = json.dumps(v, ensure_ascii=False)
+        print(" ", p[:110], "=>", (s[:260] + "…") if len(s) > 260 else s)
 
-print("== OneFootball")
-s, html = get("https://onefootball.com/es/equipo/csd-municipal-6195/partidos", raw=True)
-print(" equipo/partidos:", s, len(html or ""))
-if html:
-    m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.S)
-    print(" NEXT_DATA:", bool(m))
-    links = sorted(set(re.findall(r'/es/partido/(\d+)', html)))[:6]
-    print(" ids de partido:", links)
-    for mid in links[:2]:
-        s2, h2 = get(f"https://onefootball.com/es/partido/{mid}", raw=True)
-        print("  partido", mid, s2, len(h2 or ""))
-        if h2:
-            nd = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', h2, re.S)
-            if nd:
-                j = json.loads(nd.group(1))
-                txt = json.dumps(j)
-                print("   ¿eventos?:", len(re.findall(r'"(?:goal|yellow|red|substitution)', txt, re.I)), "| ¿alineación?:", "lineup" in txt.lower())
+# probamos todos los partidos hasta hallar uno jugado
+for mid in sorted(set(ids)):
+    h2, d2 = page(f"https://onefootball.com/es/partido/{mid}")
+    txt = json.dumps(d2)
+    print("\n##### partido", mid, "| eventos(goal):", len(re.findall(r'"goal', txt, re.I)), "| len", len(txt))
+    show("timeline/events", d2, r"^(events|timeline|matchEvents|keyEvents)$", 4)
+    show("lineup", d2, r"lineup|formation", 6)
+    show("marcador/estado", d2, r"^(score|period|matchState|status)$", 6)
+    break
