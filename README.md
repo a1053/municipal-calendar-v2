@@ -163,3 +163,7 @@ En la página del próximo partido, "El rival" muestra el historial entre ambos 
 - **Rachas y récords** (`records` en `site/stats.js`): mayor victoria, peor derrota, partido con más goles y rachas, dentro de Rendimiento.
 - **Compartir por WhatsApp** (`site/share.js`): botones en la página del partido, la tabla y la liguilla; abren WhatsApp con un texto ya armado (enlace `wa.me`, sin servidores).
 - **Alineación en cancha** (`site/pitch.js`): dibuja a los titulares según la formación y el lugar que da ESPN (`formationPlace`); si faltan datos, queda la lista. Pruebas en `tests/*.test.js`.
+
+## Minuto a minuto (complemento)
+
+Si ESPN trae el minuto a minuto (`commentary`), la página del partido lo muestra en un desplegable "Minuto a minuto", debajo de la cronología. Es un complemento: no cambia ni quita nada de la cronología, las estadísticas ni las alineaciones que ya vienen de ESPN. Si ESPN no lo trae, no aparece.
