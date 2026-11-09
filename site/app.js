@@ -528,7 +528,7 @@
       el("th", { scope: "col", class: "opt", text: "TA", title: "Tarjetas amarillas" }),
       el("th", { scope: "col", class: "opt", text: "TR", title: "Tarjetas rojas" }));
     const rows = shown.map((p) => el("tr", null,
-      el("td", null, el("span", { class: "pl" },
+      el("td", null, el("span", { class: "pcell" },
         el("span", { class: "jersey", text: p.jersey || "" }),
         el("span", { class: "pname", text: p.name }),
         p.pos ? el("span", { class: "ppos", text: p.pos }) : null)),
