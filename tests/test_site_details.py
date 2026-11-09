@@ -3,6 +3,7 @@
 Los resúmenes de ejemplo están escritos a mano con la forma que usa ESPN
 (no son respuestas reales).
 """
+import json
 import sys
 import tempfile
 import unittest
@@ -227,7 +228,8 @@ class BuildDetailsTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as d, \
                 mock.patch.object(b.cal, "fetch_api", fetch), mock.patch.object(b, "_get_json", get_json), \
-                mock.patch("requests.get", side_effect=RuntimeError("sin red")), mock.patch.object(b.cal, "load_db", return_value={}):
+                mock.patch("requests.get", side_effect=RuntimeError("sin red")), mock.patch.object(b.cal, "load_db", return_value={}), \
+                mock.patch.object(b.of_source, "collect", return_value=({}, None)):
             idx = Path(d) / "site" / "index.html"
             idx.parent.mkdir()
             idx.write_text("<head><!--og--><!--/og--></head>", encoding="utf-8")
@@ -235,9 +237,11 @@ class BuildDetailsTests(unittest.TestCase):
             code = b.build(out, None, self.NOW, site_url="https://a.github.io/repo", index_path=idx)
             self.assertEqual(code, 0)
             self.assertTrue((out / "match" / "1.json").exists())
+            page1 = json.loads((out / "match" / "1.json").read_text(encoding="utf-8"))
+            self.assertIn("commentary", page1)   # el minuto a minuto se guarda junto al resto
+            self.assertNotIn("of", page1)        # sin OneFootball no aparece el complemento
             self.assertTrue((idx.parent / "og.png").exists())
             self.assertIn("Próximo partido: Municipal vs Antigua GFC", idx.read_text(encoding="utf-8"))
-            import json
             matches = json.loads((out / "matches.json").read_text(encoding="utf-8"))["matches"]
             self.assertEqual({m["id"]: m.get("detail") for m in matches}, {"1": True, "2": True})  # 2 tiene rival
             players = json.loads((out / "players.json").read_text(encoding="utf-8"))["players"]

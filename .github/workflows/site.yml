@@ -42,7 +42,7 @@ jobs:
         run: |
           mkdir -p _prev
           base="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data"
-          for f in standings news history; do
+          for f in standings news history onefootball; do
             curl -fsS --max-time 20 "$base/$f.json" -o "_prev/$f.json" || rm -f "_prev/$f.json"
           done
           ls _prev
