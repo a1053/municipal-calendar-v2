@@ -447,3 +447,8 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .records .rv a { color: inherit; }
 .btn-wa { background: #1f9d55; border-color: #1f9d55; color: #fff; }
 .btn-wa:hover { filter: brightness(1.08); }
+
+.comm { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .35rem; font-size: .88rem; }
+.comm li { display: grid; grid-template-columns: 3.2rem 1fr; gap: .5rem; padding-bottom: .35rem; border-bottom: 1px solid var(--line); }
+.comm .ev-min { color: var(--muted); font-variant-numeric: tabular-nums; }
+.comm li.h .ctext { border-left: 3px solid var(--rojo); padding-left: .4rem; }

@@ -26,6 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import news_sources
+import onefootball as of_source  # noqa: E402
 import odds as odds_model  # noqa: E402
 import site_details as sd  # noqa: E402
 import update_calendar as cal  # noqa: E402  (reutiliza API de ESPN y la "base de datos")
@@ -314,7 +315,8 @@ def _previous(prev_dir: Path | None, name: str):
 MAX_DETAILS = 45
 
 
-def build_details(matches: list[dict], standings: dict, out_dir: Path, now: datetime, sources: dict) -> list[dict]:
+def build_details(matches: list[dict], standings: dict, out_dir: Path, now: datetime, sources: dict,
+                  of_data: dict | None = None) -> list[dict]:
     """Detalle por partido (cronología, alineaciones, estadísticas, rival).
 
     Devuelve la lista de detalles usados para armar la tabla de jugadores.
@@ -344,13 +346,16 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
                 print(f"Aviso: sin calendario del rival ({type(exc).__name__})")
                 rival_events = {}
             rival = sd.build_rival(m, cal.TEAM_ID, standings, rival_events, matches, h2h)
-        if not detail["has_data"] and not rival:
+        extra = (of_data or {}).get(m["id"])  # complemento de OneFootball (no toca lo de ESPN)
+        if not detail["has_data"] and not rival and not extra:
             continue
         ok += 1
         m["detail"] = True
         used.append(detail)
         payload = {"id": m["id"], "updated": now.strftime(cal.STAMP), "rival": rival,
-                   **{k: detail[k] for k in ("events", "lineups", "stats")}}
+                   **{k: detail[k] for k in ("events", "commentary", "lineups", "stats")}}
+        if extra:
+            payload["of"] = extra
         (out_dir / "match" / f"{m['id']}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     sources["details"] = "ok" if ok or not wanted else "error"
@@ -456,7 +461,15 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
     history = odds_model.update_history(_previous(prev_dir, "history.json"), odds, stamp)
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    details = build_details(matches, standings, out_dir, now, sources)
+    of_data, of_cache = {}, None
+    try:
+        of_data, of_cache = of_source.collect(matches, _previous(prev_dir, "onefootball.json"))
+        sources["onefootball"] = "ok" if of_data else "sin datos"
+    except Exception as exc:  # noqa: BLE001 (complemento: nunca debe romper el sitio)
+        print(f"Aviso: OneFootball falló ({type(exc).__name__}: {exc})")
+        of_cache = _previous(prev_dir, "onefootball.json")
+        sources["onefootball"] = "error"
+    details = build_details(matches, standings, out_dir, now, sources, of_data)
     players = sd.build_players(details, cal.TEAM_ID)
 
     if site_url and index_path and index_path.exists():
@@ -476,6 +489,7 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
         "news.json": news,
         **({"odds.json": odds} if odds else {}),
         **({"history.json": history} if history else {}),
+        **({"onefootball.json": {"updated": stamp, **of_cache}} if of_cache and of_cache.get("matches") else {}),
         "meta.json": {"updated": stamp, "sources": sources},
     }
     for name, payload in files.items():

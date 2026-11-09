@@ -3,6 +3,7 @@
 Los resúmenes de ejemplo están escritos a mano con la forma que usa ESPN
 (no son respuestas reales).
 """
+import json
 import sys
 import tempfile
 import unittest
@@ -104,6 +105,21 @@ class ParseTests(unittest.TestCase):
         self.assertTrue(all(isinstance(p["place"], int) for l in lu for p in l["players"]))   # lugar en la formación (0 si ESPN no lo da)
         self.assertEqual(sd._int("7"), 7)
         self.assertEqual(sd._int(None), 0)
+
+    def test_commentary_is_added_and_does_not_touch_events(self):
+        obj = {**SUMMARY, "commentary": [
+            {"sequence": 3, "time": {"value": 1850, "displayValue": "31'"}, "text": "Falta de Ruiz.", "play": {"type": {"text": "Foul"}, "team": {"id": "7258"}}},
+            {"sequence": 1, "time": {"value": 60, "displayValue": "1'"}, "text": "Comienza el partido."},
+            {"sequence": 2, "time": {"value": 60, "displayValue": "1'"}, "text": "Comienza el partido."},   # repetido
+            {"sequence": 4, "text": ""}, "raro", {"sequence": 5, "play": {"text": "Tiro de esquina."}}]}
+        base = sd.parse_summary(SUMMARY, match())
+        full = sd.parse_summary(obj, match())
+        self.assertEqual(full["events"], base["events"])
+        self.assertEqual([c["text"] for c in full["commentary"]], ["Comienza el partido.", "Tiro de esquina.", "Falta de Ruiz."])
+        self.assertEqual(full["commentary"][2]["kind"], "Foul")   # la jugada sin hora queda junto a la anterior
+        self.assertEqual(base["commentary"], [])
+        only = sd.parse_summary({"commentary": [{"text": "Hola", "time": {"displayValue": "5'", "value": 300}}]}, match())
+        self.assertTrue(only["has_data"])
 
     def test_stats_aligned_by_team_and_labeled(self):
         st = sd.parse_stats(SUMMARY, MUNI, RIVAL)
@@ -212,7 +228,8 @@ class BuildDetailsTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as d, \
                 mock.patch.object(b.cal, "fetch_api", fetch), mock.patch.object(b, "_get_json", get_json), \
-                mock.patch("requests.get", side_effect=RuntimeError("sin red")), mock.patch.object(b.cal, "load_db", return_value={}):
+                mock.patch("requests.get", side_effect=RuntimeError("sin red")), mock.patch.object(b.cal, "load_db", return_value={}), \
+                mock.patch.object(b.of_source, "collect", return_value=({}, None)):
             idx = Path(d) / "site" / "index.html"
             idx.parent.mkdir()
             idx.write_text("<head><!--og--><!--/og--></head>", encoding="utf-8")
@@ -220,9 +237,11 @@ class BuildDetailsTests(unittest.TestCase):
             code = b.build(out, None, self.NOW, site_url="https://a.github.io/repo", index_path=idx)
             self.assertEqual(code, 0)
             self.assertTrue((out / "match" / "1.json").exists())
+            page1 = json.loads((out / "match" / "1.json").read_text(encoding="utf-8"))
+            self.assertIn("commentary", page1)   # el minuto a minuto se guarda junto al resto
+            self.assertNotIn("of", page1)        # sin OneFootball no aparece el complemento
             self.assertTrue((idx.parent / "og.png").exists())
             self.assertIn("Próximo partido: Municipal vs Antigua GFC", idx.read_text(encoding="utf-8"))
-            import json
             matches = json.loads((out / "matches.json").read_text(encoding="utf-8"))["matches"]
             self.assertEqual({m["id"]: m.get("detail") for m in matches}, {"1": True, "2": True})  # 2 tiene rival
             players = json.loads((out / "players.json").read_text(encoding="utf-8"))["players"]

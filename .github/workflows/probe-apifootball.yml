@@ -10,6 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/fm_of_probe.py
+      - run: python3 scripts/real_check_tmp.py
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}

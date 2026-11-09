@@ -715,11 +715,9 @@
       el("p", { class: "meta" }, el("a", { href: "https://www.fotmob.com/teams/9933/overview/csd-municipal", target: "_blank", rel: "noopener noreferrer", text: "Ver más estadísticas de Municipal en FotMob" })));
   }
 
-  function timeline(m, events) {
-    const items = events.filter((e) => KIND[e.kind]);
-    if (!items.length) return null;
+  function timelineList(m, items) {
     const homeId = m.home.id;
-    return section("Cronología", el("ol", { class: "tl" }, ...items.map((e) => {
+    return el("ol", { class: "tl" }, ...items.map((e) => {
       const label = e.kind === "goal" && e.penalty ? "Gol de penal" : KIND[e.kind];
       const who = e.kind === "sub" ? e.text : e.player;
       const body = el("div", { class: `ev-body k-${e.kind}` },
@@ -731,7 +729,41 @@
         el("div", { class: "ev-side home" }, home ? body : null),
         el("span", { class: "ev-min", text: e.min }),
         el("div", { class: "ev-side away" }, home ? null : body));
-    })));
+    }));
+  }
+
+  function timeline(m, events) {
+    const items = events.filter((e) => KIND[e.kind]);
+    if (!items.length) return null;
+    return section("Cronología", timelineList(m, items));
+  }
+
+  function ofCredit(of) {
+    return el("p", { class: "meta of-credit" }, "Datos de ",
+      el("a", { href: safeUrl(of.url), target: "_blank", rel: "noopener noreferrer", text: "OneFootball" }), ".");
+  }
+
+  /** Eventos de OneFootball: solo suman. Si ESPN no trae cronología la reemplaza (con su fuente a la vista);
+   *  si trae menos eventos, deja los de ESPN como están y agrega la lista completa aparte. */
+  function ofEventsBlock(m, of, espnEvents) {
+    const items = ((of && of.events) || []).filter((e) => KIND[e.kind]);
+    if (!items.length) return null;
+    const have = (espnEvents || []).filter((e) => KIND[e.kind]).length;
+    if (!have) return section("Cronología", timelineList(m, items), ofCredit(of));
+    if (items.length <= have) return null;
+    return section("Todos los eventos", el("details", null,
+      el("summary", { text: `Ver los ${items.length} eventos (ESPN muestra ${have})` }),
+      timelineList(m, items), ofCredit(of)));
+  }
+
+  /** Minuto a minuto de ESPN, plegado: complementa la cronología sin cambiarla. */
+  function commentaryBlock(m, items) {
+    if (!items || !items.length) return null;
+    const list = items.slice().reverse(); // lo más reciente arriba
+    return section("Minuto a minuto", el("details", null,
+      el("summary", { text: `Ver las jugadas (${items.length})` }),
+      el("ol", { class: "comm" }, ...list.map((c) => el("li", { class: c.team_id === m.home.id ? "h" : c.team_id === m.away.id ? "a" : "" },
+        el("span", { class: "ev-min", text: c.min }), el("span", { class: "ctext", text: c.text }))))));
   }
 
   function statsBlock(m, stats) {
@@ -773,7 +805,7 @@
     return pitch;
   }
 
-  function lineupsBlock(m, lineups) {
+  function lineupsBlock(m, lineups, of) {
     if (!lineups.length) return null;
     const ordered = [...lineups].sort((a, b) => (a.team_id === m.home.id ? -1 : 1) - (b.team_id === m.home.id ? -1 : 1));
     return section("Alineaciones", el("div", { class: "lineups" }, ...ordered.map((lu) => {
@@ -786,7 +818,7 @@
         pitch,
         pitch ? el("details", null, el("summary", { text: "Ver la lista de titulares" }), starters) : starters,
         bench.length ? el("details", null, el("summary", { text: `Suplentes (${bench.length})` }), el("ul", { class: "plain" }, ...bench.map(li))) : null);
-    })));
+    })), of ? ofCredit(of) : null);
   }
 
   async function renderMatchView(id) {
@@ -810,8 +842,10 @@
     const parts = detail ? [
       m.state === "pre" && detail.rival ? rivalBlock(detail.rival) : null,
       timeline(m, detail.events || []),
+      ofEventsBlock(m, detail.of, detail.events),
+      commentaryBlock(m, detail.commentary),
       statsBlock(m, detail.stats || []),
-      lineupsBlock(m, detail.lineups || []),
+      (detail.lineups || []).length ? lineupsBlock(m, detail.lineups) : lineupsBlock(m, (detail.of && detail.of.lineups) || [], detail.of),
     ].filter(Boolean) : [];
     const fcard = forecastCard(m);
     if (fcard) parts.unshift(fcard);

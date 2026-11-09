@@ -1,6 +1,6 @@
 /* Service worker mínimo: primero la red (siempre datos frescos) y, si no hay internet,
  * lo último que se vio. Solo toca archivos del propio sitio. */
-const CACHE = "municipal-v4";
+const CACHE = "municipal-v5";
 const SHELL = ["./", "styles.css", "app.js", "stats.js", "liguilla.js", "forecast.js", "live.js", "pitch.js", "topics.js", "share.js", "config.json",
   "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 
