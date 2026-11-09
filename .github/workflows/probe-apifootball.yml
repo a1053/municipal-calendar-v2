@@ -1,4 +1,4 @@
-name: Probar API-Football
+name: Probar fuentes
 on:
   push:
     branches: [probe-apifootball]
@@ -10,6 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/real_check_tmp.py
-        env:
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+      - run: pip install playwright && playwright install --with-deps chromium
+      - run: python3 scripts/tigo_probe.py
