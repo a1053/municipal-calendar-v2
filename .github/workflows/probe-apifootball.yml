@@ -10,5 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: pip install playwright && playwright install --with-deps chromium
-      - run: python3 scripts/tigo_probe.py
+      - run: python3 --version
+      - run: python3 scripts/fm_of_probe.py
