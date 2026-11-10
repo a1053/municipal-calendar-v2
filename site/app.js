@@ -8,6 +8,7 @@
   let data = { matches: null, standings: null, news: null, meta: null, players: null };
   let newsFeed = "municipal";
   let showAllPlayers = false;
+  let playerComp = "all";
   let timer = null;
 
   // ---------- utilidades ----------
@@ -145,6 +146,11 @@
         el("strong", { text: `${last.home.name} ${last.home.score ?? "-"} - ${last.away.score ?? "-"} ${last.away.name}` }),
         last.result ? chip(last.result) : null));
     }
+    const recent = results.filter((m) => m.result).slice(0, 5).reverse();
+    if (recent.length) {
+      box.append(el("p", { class: "streak", "aria-label": `Últimos ${recent.length} partidos` },
+        el("span", { text: "Últimos partidos" }), ...recent.map((x) => chip(x.result))));
+    }
     box.dataset.next = next ? next.start : "";
   }
 
@@ -182,7 +188,7 @@
     const meta = [m.postponed ? "Aplazado" : "", compLabel(m.competition), m.venue].filter(Boolean).join(", ");
     const internal = m.detail;
     return el("li", null,
-      el("a", { class: "m", href: matchHref(m), target: internal ? null : "_blank", rel: internal ? null : "noopener" },
+      el("a", { class: `m${m.result ? ` r-${m.result}` : ""}${m.state === "in" ? " live" : ""}`, href: matchHref(m), target: internal ? null : "_blank", rel: internal ? null : "noopener" },
         el("div", { class: "when" }, el("span", { class: "d", text: fDay(d) }), el("span", { text: fTime(d) })),
         el("div", null, row(m.home), row(m.away), el("div", { class: "meta", text: meta })),
         m.result ? chip(m.result) : el("span")));
@@ -396,6 +402,28 @@
     direct: "Semifinales asegurada", qualified: "Liguilla asegurada", alive: "En disputa",
     "no-direct": "Sin directo posible", out: "Eliminado", unknown: "",
   };
+  /** Los datos de Municipal en la liguilla, en grande: posición, puntos, probabilidades y partidos que faltan. */
+  function ligaTiles(rows, o, me, pr) {
+    const L = window.MuniLiguilla;
+    const mine = L.situation(rows, o).find((t) => t.is_municipal || String(t.team_id) === String(config.team_id));
+    if (!mine) return null;
+    const zone = mine.pos <= o.direct ? "Directo a semifinales" : mine.pos <= o.qualify ? "Dentro de los 6" : "Fuera de los 6";
+    const tile = (label, value, sub, extra) => el("div", { class: `tile${extra || ""}` },
+      el("span", { class: "tile-l", text: label }), el("strong", { class: "tile-v", text: value }), sub ? el("span", { class: "tile-s", text: sub }) : null);
+    const ring = (label, n, sub) => el("div", { class: "tile ring-tile" },
+      el("div", { class: "ring", style: `--p:${Math.max(0, Math.min(100, Math.round(n)))}`, role: "img", "aria-label": `${label}: ${pct(n)}` },
+        el("strong", { text: pct(n) })),
+      el("span", { class: "tile-l", text: label }), el("span", { class: "tile-s", text: sub }));
+    const list = [
+      tile("Posición", `${mine.pos}.º`, zone, " first"),
+      tile("Puntos", mine.pts == null ? "-" : mine.pts, mine.pj == null ? "" : `en ${mine.pj} partidos`),
+      me && !pr.done ? ring("Clasifica", me.p_qualify, "a la liguilla") : null,
+      me && !pr.done ? ring("Directo", me.p_direct, "a semifinales") : null,
+      mine.left == null ? null : tile(mine.left === 1 ? "Falta" : "Faltan", mine.left, mine.left === 1 ? "partido" : "partidos"),
+    ];
+    return el("div", { class: "tiles" }, ...list);
+  }
+
   function renderLiguilla() {
     const box = $("liga-box");
     box.replaceChildren();
@@ -417,7 +445,10 @@
     if (me && !pr.done) sum.push(`Según la simulación, ${me.name} tiene ${pct(me.p_qualify)} de probabilidad de clasificar a la liguilla y ${pct(me.p_direct)} de pasar directo a semifinales.`);
     const shareLiga = window.MuniShare && sum.length ? el("p", { class: "actions" }, waButton(window.MuniShare.ligaText(sum, me, {
       tournament: (config.liguilla && config.liguilla.tournament) || "", url: siteUrl() + "#liguilla" }), "Compartir la liguilla por WhatsApp")) : null;
-    if (sum.length) box.append(el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t }))), shareLiga);
+    const tiles = ligaTiles(rows, o, me, pr);
+    if (tiles) box.append(tiles);
+    if (sum.length) box.append(el("details", { class: "liga-more" }, el("summary", { text: "Ver el detalle en palabras" }),
+      el("ul", { class: "liga-sum" }, ...sum.map((t) => el("li", { text: t })))), shareLiga);
 
     // llave interactiva
     const b = L.bracket(rows, ligaPicks, o);
@@ -483,10 +514,26 @@
   function renderPlayers() {
     const box = $("players");
     box.replaceChildren();
-    const list = (data.players && data.players.players) || [];
-    if (!list.length) {
+    const all = (data.players && data.players.players) || [];
+    if (!all.length) {
       box.append(el("p", { class: "empty", text: "Aparecerán cuando haya alineaciones de partidos jugados." }));
       return;
+    }
+    // Competencias que aparecen en los datos: la liga primero.
+    const found = [...new Set(all.flatMap((p) => Object.keys(p.comps || {})))];
+    found.sort((a, b) => (a === LEAGUE() ? -1 : b === LEAGUE() ? 1 : a.localeCompare(b, "es")));
+    if (playerComp !== "all" && !found.includes(playerComp)) playerComp = "all";
+    const zero = { pj: 0, starts: 0, goals: 0, assists: 0, yellow: 0, red: 0 };
+    const statsOf = (p) => (playerComp === "all" ? p : { ...p, ...zero, ...((p.comps || {})[playerComp] || {}) });
+    const list = all.map(statsOf)
+      .filter((p) => p.pj || p.goals || p.assists || p.yellow || p.red)
+      .sort((a, b) => b.goals - a.goals || b.assists - a.assists || b.pj - a.pj || a.name.localeCompare(b.name, "es"));
+
+    if (found.length > 1) {
+      const opts = [["all", "Todas"], ...found.map((c) => [c, compLabel(c)])];
+      box.append(el("div", { class: "seg players-seg", role: "group", "aria-label": "Competencia" },
+        ...opts.map(([key, label]) => el("button", { type: "button", "aria-pressed": playerComp === key ? "true" : "false", text: label,
+          onclick: () => { playerComp = key; showAllPlayers = false; renderPlayers(); } }))));
     }
     const shown = showAllPlayers ? list : list.slice(0, 10);
     const v = (x) => (x ? x : "-");
@@ -498,7 +545,7 @@
       el("th", { scope: "col", class: "opt", text: "TA", title: "Tarjetas amarillas" }),
       el("th", { scope: "col", class: "opt", text: "TR", title: "Tarjetas rojas" }));
     const rows = shown.map((p) => el("tr", null,
-      el("td", null, el("span", { class: "pl" },
+      el("td", null, el("span", { class: "pcell" },
         el("span", { class: "jersey", text: p.jersey || "" }),
         el("span", { class: "pname", text: p.name }),
         p.pos ? el("span", { class: "ppos", text: p.pos }) : null)),
@@ -507,10 +554,11 @@
       el("td", { text: v(p.assists) }),
       el("td", { class: "opt", text: v(p.yellow) }),
       el("td", { class: "opt", text: v(p.red) })));
+    const scope = playerComp === "all" ? "todas las competencias" : compLabel(playerComp);
     box.append(
       el("div", { class: "tablewrap" }, el("table", { class: "std players" },
-        el("caption", { text: "Con los partidos que tienen alineación en ESPN" }),
-        el("thead", null, head), el("tbody", null, rows))));
+        el("caption", { text: `${scope}, con los partidos que tienen alineación` }),
+        el("thead", null, head), el("tbody", null, rows.length ? rows : el("tr", null, el("td", { colspan: "6", class: "empty", text: "Todavía no hay datos en esta competencia." }))))));
     if (list.length > 10) {
       const b = el("button", { class: "btn btn-ghost", type: "button", text: showAllPlayers ? "Ver menos" : `Ver los ${list.length} jugadores` });
       b.addEventListener("click", () => { showAllPlayers = !showAllPlayers; renderPlayers(); });

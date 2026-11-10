@@ -187,16 +187,29 @@ def parse_summary(obj: dict, match: dict) -> dict:
 # --------------------------------------------------------------------------
 # Jugadores (se arma con las alineaciones y eventos de los partidos)
 # --------------------------------------------------------------------------
+STAT_KEYS = ("pj", "starts", "goals", "assists", "yellow", "red")
+
+
 def build_players(details: list[dict], team_id: str) -> list[dict]:
+    """Totales por jugador y, además, el desglose por competencia en `comps`.
+
+    Los totales (pj, goals, ...) siguen sumando todo; `comps` permite separar la liga de las copas.
+    """
     people: dict[str, dict] = {}
 
     def get(pid, name):
         key = pid or name
         return people.setdefault(key, {"id": pid, "name": name, "jersey": "", "pos": "", "pj": 0,
-                                       "starts": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0})
+                                       "starts": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "comps": {}})
+
+    def bump(row, comp, key, n=1):
+        row[key] += n
+        if comp:
+            row["comps"].setdefault(comp, dict.fromkeys(STAT_KEYS, 0))[key] += n
 
     by_name: dict[str, dict] = {}
     for d in details:
+        comp = d.get("competition") or ""
         for lu in d.get("lineups", []):
             if lu["team_id"] != team_id:
                 continue
@@ -205,23 +218,23 @@ def build_players(details: list[dict], team_id: str) -> list[dict]:
                 by_name[p["name"]] = row
                 row["jersey"] = p["jersey"] or row["jersey"]
                 row["pos"] = p["pos"] or row["pos"]
-                row["pj"] += 1 if p["played"] else 0
-                row["starts"] += 1 if p["starter"] else 0
+                bump(row, comp, "pj", 1 if p["played"] else 0)
+                bump(row, comp, "starts", 1 if p["starter"] else 0)
         for ev in d.get("events", []):
             if ev["team_id"] != team_id or not ev["player"]:
                 continue
             row = by_name.get(ev["player"]) or get(ev.get("player_id", ""), ev["player"])
             by_name[ev["player"]] = row
             if ev["kind"] == "goal":
-                row["goals"] += 1
+                bump(row, comp, "goals")
                 if ev["assist"]:
                     arow = by_name.get(ev["assist"]) or get("", ev["assist"])
                     by_name[ev["assist"]] = arow
-                    arow["assists"] += 1
+                    bump(arow, comp, "assists")
             elif ev["kind"] == "yellow":
-                row["yellow"] += 1
+                bump(row, comp, "yellow")
             elif ev["kind"] == "red":
-                row["red"] += 1
+                bump(row, comp, "red")
     rows = [r for r in people.values() if r["name"]]
     rows.sort(key=lambda r: (-r["goals"], -r["assists"], -r["pj"], r["name"]))
     return rows

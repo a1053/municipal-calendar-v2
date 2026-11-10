@@ -183,3 +183,19 @@ completa con los datos públicos de OneFootball (`scripts/onefootball.py`):
 - Cada bloque lleva el enlace "Datos de OneFootball".
 
 También se corrigió que el "Minuto a minuto" de ESPN se leía pero no se guardaba en el JSON de cada partido.
+<<<<<<< HEAD
+=======
+
+## Diseño (portada, liguilla y partidos)
+
+- Portada tipo tablero de estadio: foco de luz, rayas de camiseta, escudos grandes, marcador LED y racha de los últimos 5 partidos.
+- Liguilla: posición, puntos, probabilidades (anillos), y partidos que faltan en grande; el texto queda en "Ver el detalle en palabras".
+- Partidos: tarjetas con franja de color por resultado (verde ganó, gris empató, rojo perdió, ámbar en vivo).
+- Solo cambia el aspecto: los datos y las funciones son los mismos.
+
+## Jugadores por competencia
+
+La tabla de Jugadores muestra por defecto el total de todas las competencias ("Todas"). Si hay partidos de más de una
+competencia, aparece un selector para ver solo la Liga Bantrab o cada copa. `players.json` guarda el total y el
+desglose por competencia (`comps`), y los dos siempre suman lo mismo.
+>>>>>>> origin/main

@@ -226,8 +226,12 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 }
 
 /* Jugadores */
-.pl { display: flex; align-items: baseline; gap: 8px; min-width: 9rem; }
-.jersey { display: inline-block; min-width: 1.6rem; text-align: right; font: 800 1rem/1 var(--font-display); color: var(--muted); }
+.pcell { display: flex; align-items: center; gap: 10px; min-width: 9rem; }
+.jersey {
+  display: inline-grid; place-items: center; flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  background: var(--surface); font: 800 .95rem/1 var(--font-display); color: var(--ink);
+}
+.jersey:empty { visibility: hidden; }
 .pname { font-weight: 500; }
 .ppos { font-size: .75rem; color: var(--muted); }
 .std.players caption { padding-bottom: 8px; }
@@ -452,3 +456,87 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .comm li { display: grid; grid-template-columns: 3.2rem 1fr; gap: .5rem; padding-bottom: .35rem; border-bottom: 1px solid var(--line); }
 .comm .ev-min { color: var(--muted); font-variant-numeric: tabular-nums; }
 .comm li.h .ctext { border-left: 3px solid var(--rojo); padding-left: .4rem; }
+<<<<<<< HEAD
+=======
+
+/* ===== Rediseño: portada de estadio, datos grandes y tarjetas de partido ===== */
+.board {
+  position: relative; isolation: isolate; overflow: hidden;
+  padding: 34px var(--gutter) 38px;
+  background:
+    radial-gradient(70% 90% at 50% 0%, rgba(208,28,36,.42), rgba(208,28,36,0) 70%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 2px, transparent 2px 46px),
+    var(--vino);
+}
+.board::after {  /* franja roja de la "camiseta" al pie */
+  content: ""; position: absolute; inset: auto 0 0 0; height: 4px; z-index: -1;
+  background: linear-gradient(90deg, var(--rojo), var(--led) 50%, var(--rojo));
+}
+.board .status {
+  width: fit-content; margin: 0 auto 22px; padding: 5px 14px;
+  border: 1px solid rgba(255,255,255,.28); border-radius: 999px; background: rgba(0,0,0,.25);
+  font-size: .85rem; letter-spacing: .03em;
+}
+.board .status.live { border-color: var(--led); }
+.board .badge {
+  width: clamp(64px, 20vw, 108px); height: clamp(64px, 20vw, 108px);
+  background: rgba(255,255,255,.96); box-shadow: 0 0 0 4px rgba(255,255,255,.12), 0 10px 28px rgba(0,0,0,.45);
+  color: var(--vino); font-size: clamp(1.4rem, 6vw, 2.2rem);
+}
+.board .side .nm { font-size: clamp(1rem, 4.4vw, 1.9rem); }
+.board .digits, .board .kickoff .hour { text-shadow: 0 0 26px rgba(255,180,0,.5), 0 0 2px rgba(255,180,0,.9); }
+.board .countdown {
+  width: fit-content; margin: 16px auto 0; padding: 6px 16px; border-radius: 6px;
+  background: rgba(0,0,0,.35); color: var(--led); font-size: 1.3rem;
+}
+.board .last { border-top-color: rgba(255,255,255,.14); }
+.streak { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 14px 0 0; color: #f0d9dc; font-size: .9rem; }
+.streak span:first-child { margin-right: 6px; }
+.board .chip { border-radius: 50%; width: 28px; height: 28px; }
+
+/* Datos de la liguilla en grande */
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 18px; }
+.tile {
+  display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 14px 16px;
+  background: var(--surface); border-radius: 12px; border-left: 4px solid var(--rojo);
+}
+.tile.first { grid-column: 1 / -1; background: var(--vino); color: #fff; }
+.tile-l { font-size: .9rem; color: var(--muted); }
+.tile.first .tile-l, .tile.first .tile-s { color: #f0d9dc; }
+.tile-v { font: 800 clamp(2.6rem, 11vw, 3.6rem)/.95 var(--font-display); }
+.tile.first .tile-v { color: var(--led); font-size: clamp(3.4rem, 15vw, 4.8rem); }
+.tile-s { font-size: .9rem; color: var(--muted); }
+.ring-tile { align-items: flex-start; }
+.ring {
+  --p: 0; position: relative; width: 84px; height: 84px; border-radius: 50%; margin-bottom: 6px;
+  background: conic-gradient(var(--rojo) calc(var(--p) * 1%), var(--line) 0);
+  display: grid; place-items: center;
+}
+.ring::before { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: var(--surface); }
+.ring strong { position: relative; font: 800 1.3rem/1 var(--font-display); }
+@media (min-width: 720px) {
+  .tiles { grid-template-columns: 1.5fr repeat(4, minmax(0, 1fr)); }
+  .tile.first { grid-column: auto; }
+  .tile.first .tile-v { font-size: 4.2rem; }
+}
+.liga-more { margin: 0 0 14px; }
+.liga-more summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
+
+/* Tarjetas de partido */
+.matches { display: grid; gap: 10px; }
+.matches li { border: 0; }
+.m {
+  background: var(--surface); border-radius: 12px; border-left: 5px solid var(--line);
+  padding: 12px 14px; transition: transform .12s ease, box-shadow .12s ease;
+}
+.m:hover { background: var(--surface); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.14); }
+.m.r-G { border-left-color: var(--win); }
+.m.r-P { border-left-color: var(--loss); }
+.m.r-E { border-left-color: var(--draw); }
+.m.live { border-left-color: var(--led); }
+.m .badge { width: 28px; height: 28px; background: var(--bg); }
+.m .t-row { grid-template-columns: 28px minmax(0, 1fr) auto; padding: 3px 0; }
+.m .t-row .s { font-size: 1.6rem; }
+.m .chip { border-radius: 50%; }
+@media (prefers-reduced-motion: reduce) { .m { transition: none; } .m:hover { transform: none; } }
+>>>>>>> origin/main

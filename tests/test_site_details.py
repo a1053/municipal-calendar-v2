@@ -145,6 +145,22 @@ class PlayersTests(unittest.TestCase):
         self.assertEqual(by["Banca"]["pj"], 0)
         self.assertNotIn("Gómez", by)  # rival excluido
 
+    def test_split_by_competition_keeps_totals(self):
+        liga = {**sd.parse_summary(SUMMARY, match()), "competition": "Liga Nacional de Guatemala"}
+        copa = {**sd.parse_summary(SUMMARY, match()), "competition": "CONCACAF Champions Cup"}
+        rows = sd.build_players([liga, copa, copa], MUNI)
+        perez = next(r for r in rows if r["name"] == "Pérez")
+        self.assertEqual((perez["goals"], perez["pj"]), (3, 3))   # el total sigue sumando todo
+        self.assertEqual(perez["comps"]["Liga Nacional de Guatemala"]["goals"], 1)
+        self.assertEqual(perez["comps"]["CONCACAF Champions Cup"]["goals"], 2)
+        self.assertEqual(perez["comps"]["CONCACAF Champions Cup"]["pj"], 2)
+        for key in ("pj", "starts", "goals", "assists", "yellow", "red"):
+            self.assertEqual(sum(c[key] for c in perez["comps"].values()), perez[key])
+
+    def test_without_competition_there_is_no_split(self):
+        rows = sd.build_players([sd.parse_summary(SUMMARY, match())], MUNI)
+        self.assertEqual(rows[0]["comps"], {})
+
     def test_empty(self):
         self.assertEqual(sd.build_players([], MUNI), [])
 
