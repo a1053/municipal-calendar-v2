@@ -1,7 +1,7 @@
 /* Service worker mínimo: primero la red (siempre datos y código frescos, sin esperar la caché de 10 min)
  * y, si no hay internet, lo último que se vio. Solo toca archivos del propio sitio. */
-const CACHE = "municipal-v11";
-const SHELL = ["./", "styles.css", "app.js", "stats.js", "liguilla.js", "forecast.js", "previa.js", "live.js", "pitch.js", "topics.js", "share.js", "sharecard.js", "config.json",
+const CACHE = "municipal-v12";
+const SHELL = ["./", "styles.css", "app.js", "stats.js", "liguilla.js", "forecast.js", "previa.js", "live.js", "pitch.js", "formation.js", "topics.js", "share.js", "sharecard.js", "config.json",
   "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {

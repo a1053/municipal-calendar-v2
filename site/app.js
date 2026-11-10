@@ -961,14 +961,21 @@
   function lineupsBlock(m, lineups, of) {
     if (!lineups.length) return null;
     const ordered = [...lineups].sort((a, b) => (a.team_id === m.home.id ? -1 : 1) - (b.team_id === m.home.id ? -1 : 1));
-    return section("Alineaciones", el("div", { class: "lineups" }, ...ordered.map((lu) => {
+    return section("Alineaciones", el("div", { class: "lineups" }, ...ordered.map((lu0) => {
+      // Sin formación en la fuente: para Municipal se estima con las posiciones del plantel de ESPN.
+      let lu = lu0, estimated = false;
+      if (!lu0.formation && window.MuniFormation && isMe({ id: lu0.team_id, name: lu0.team }) && data.roster && data.roster.players) {
+        const est = window.MuniFormation.estimate(lu0.players, data.roster.players);
+        if (est) { lu = { ...lu0, formation: est.formation, players: est.players }; estimated = true; }
+      }
       const li = (p) => el("li", null, el("span", { class: "jersey", text: p.jersey || "" }), el("span", { class: "pname", text: p.name }), p.pos ? el("span", { class: "ppos", text: p.pos }) : null);
       const bench = lu.players.filter((p) => !p.starter);
       const pitch = pitchView(lu, isMe({ id: lu.team_id, name: lu.team }));
       const starters = el("ul", { class: "plain" }, ...lu.players.filter((p) => p.starter).map(li));
       return el("div", { class: "lu" },
-        el("h3", { text: lu.team + (lu.formation ? ` (${lu.formation})` : "") }),
+        el("h3", { text: lu.team + (lu.formation ? ` (${lu.formation}${estimated ? ", estimada" : ""})` : "") }),
         pitch,
+        pitch && estimated ? el("p", { class: "meta", text: "Formación estimada con las posiciones del plantel; la real puede variar." }) : null,
         pitch ? el("details", null, el("summary", { text: "Ver la lista de titulares" }), starters) : starters,
         bench.length ? el("details", null, el("summary", { text: `Suplentes (${bench.length})` }), el("ul", { class: "plain" }, ...bench.map(li))) : null);
     })), of ? ofCredit(of) : null);
