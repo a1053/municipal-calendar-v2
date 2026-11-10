@@ -204,6 +204,15 @@ class PlayersTests(unittest.TestCase):
         rows = sd.build_players([solo, of], MUNI)
         self.assertEqual(sum(1 for r in rows if r["name"].endswith("rez")), 2)
 
+    def test_close_names(self):
+        n = sd._norm
+        for a, b in (("Elvi Elington", "Elvi Gerardo Elington Cayetano"), ("Francisco Guzmán", "Francisco José Guzmán Ávila"),
+                     ("Aubrey David", "Aubrey Devid"), ("Pedro Altán", "Pedro Antonio Altán")):
+            self.assertTrue(sd._close(n(a), n(b)), (a, b))
+        for a, b in (("Rudy Barrientos", "Rudy Muñoz"), ("José Mena", "José Morales"), ("Yunior Pérez", "Pedro Pérez"),
+                     ("Pérez", "Pedro Pérez"), ("Carlos Aguilar", "Carlos Estrada")):
+            self.assertFalse(sd._close(n(a), n(b)), (a, b))
+
     def test_empty(self):
         self.assertEqual(sd.build_players([], MUNI), [])
 
