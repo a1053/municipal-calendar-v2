@@ -149,6 +149,18 @@ class BuildTests(unittest.TestCase):
         self.assertEqual((page["events"], page["lineups"], page["stats"], page["commentary"]), ([], [], [], []))  # ESPN intacto
         self.assertTrue(m["detail"])
 
+    def test_player_stats_use_onefootball_only_when_espn_has_nothing(self):
+        m = espn()
+        extra = {"of_id": "5", "url": "u", "finished": True, "lineups": [],
+                 "events": [{"kind": "goal", "player": "X", "team_id": "7258", "assist": ""}]}
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(b, "_get_json", return_value={}):
+            used = b.build_details([m], {}, Path(d), self.NOW, {}, {"10": extra})
+        self.assertEqual([bool(u.get("of")) for u in used], [False, True])   # ESPN vacío: se suma OneFootball
+        self.assertEqual(used[1]["competition"], "Liga")
+        self.assertTrue(b._has_team_data({"lineups": [{"team_id": "7258"}], "events": []}, "7258"))
+        self.assertTrue(b._has_team_data({"lineups": [], "events": [{"team_id": "7258"}]}, "7258"))
+        self.assertFalse(b._has_team_data({"lineups": [{"team_id": "99"}], "events": []}, "7258"))
+
 
 if __name__ == "__main__":
     unittest.main()
