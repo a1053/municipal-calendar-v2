@@ -1132,17 +1132,7 @@
     if (socialBuilt) return;
     socialBuilt = true;
     const box = $("social");
-    const ig = config.instagram_handle, fb = config.facebook_url;
-    if (fb && /^https:\/\/(www\.)?facebook\.com\//.test(fb)) {
-      const frame = el("div", { class: "frame" });
-      box.append(el("div", null, el("h3", { text: "Facebook" }), frame,
-        el("a", { class: "btn", href: fb, target: "_blank", rel: "noopener", text: "Abrir en Facebook" })));
-      if (config.show_facebook_embed !== false) lazy(frame, () => {
-        const w = Math.max(180, Math.min(500, Math.floor(frame.clientWidth) || 340));
-        frame.append(el("iframe", { src: `https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(fb)}&tabs=timeline&width=${w}&height=520&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false`,
-          title: "Publicaciones de Municipal en Facebook", loading: "lazy", scrolling: "no", style: "border:0;overflow:hidden", width: String(w), height: "520", allow: "encrypted-media" }));
-      });
-    }
+    const ig = config.instagram_handle;
     if (ig) {
       const frame = el("div", { class: "frame" });
       box.append(el("div", null, el("h3", { text: `Instagram (@${ig})` }), frame,
