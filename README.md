@@ -209,3 +209,10 @@ del partido, no se suma OneFootball, para no contar dos veces. OneFootball no tr
 En pantallas angostas (hasta 720 px) el menú de arriba se oculta y aparece una barra fija abajo con Inicio, Partidos,
 Tabla, Liguilla y "Más" (Jugadores, Noticias, Rendimiento, Redes y Calendario completo). La pestaña activa cambia sola
 según la sección que se está viendo. En computadora se mantiene el menú de arriba.
+
+## Plantel con fichas de jugador
+
+En Jugadores hay dos vistas: **Plantel** (fichas por posición con número o foto, edad, nacionalidad, lesión si ESPN la
+reporta y PJ/goles/asistencias) y **Estadísticas** (la tabla). El selector de competencia también filtra las fichas.
+El plantel sale del roster de ESPN (`scripts/roster.py`, publicado como `data/roster.json`); si ESPN falla se conserva el
+último publicado (`stale`). Las estadísticas se cruzan con las de `players.json` por nombre.

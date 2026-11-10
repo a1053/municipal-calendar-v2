@@ -563,3 +563,23 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
   .more-menu a { padding: 13px 14px; border-radius: 8px; font-weight: 600; text-decoration: none; }
   .more-menu a:active, .more-menu a:hover { background: var(--bg); }
 }
+
+/* Plantel: fichas por posición */
+.players-view{margin-bottom:.5rem}
+.squad .sq-group{margin-top:1.1rem}
+.squad .sq-group h3{margin:0 0 .5rem;font-size:1rem}
+.pcards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:.6rem}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.6rem .7rem;display:flex;flex-direction:column;gap:.35rem;min-width:0}
+.pcard.hurt{border-color:var(--loss)}
+.pc-top{display:flex;gap:.55rem;align-items:center;min-width:0}
+.pc-photo{flex:none;width:44px;height:44px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--rojo);color:#fff;font-weight:800;font-size:1rem}
+.pc-photo img{width:100%;height:100%;object-fit:cover}
+.pc-id{display:flex;flex-direction:column;min-width:0}
+.pc-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-country{margin:0;display:flex;align-items:center;gap:.35rem;font-size:.85rem}
+.pc-country img{width:18px;height:18px;border-radius:50%;object-fit:cover}
+.pc-hurt{margin:0;font-size:.8rem;color:var(--loss);font-weight:600}
+.pc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.25rem;text-align:center;border-top:1px solid var(--line);padding-top:.35rem}
+.pc-stats strong{display:block;font-size:1.05rem}
+.pc-stats span{font-size:.68rem;opacity:.7}
+.pc-none{margin:0;font-size:.78rem;opacity:.65}

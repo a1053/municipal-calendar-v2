@@ -5,9 +5,10 @@
   const $ = (id) => document.getElementById(id);
   const BASE_TITLE = document.title;
   let config = {};
-  let data = { matches: null, standings: null, news: null, meta: null, players: null };
+  let data = { matches: null, standings: null, news: null, meta: null, players: null, roster: null };
   let newsFeed = "municipal";
   let showAllPlayers = false;
+  let playersView = "squad";   // "squad" (fichas del plantel) o "stats" (tabla)
   let playerComp = "all";
   let timer = null;
 
@@ -511,11 +512,66 @@
   }
 
   // ---------- jugadores ----------
+  const ZERO_STATS = { pj: 0, starts: 0, goals: 0, assists: 0, yellow: 0, red: 0 };
+
+  function playerCard(r, st) {
+    const photo = el("span", { class: "pc-photo", "aria-hidden": "true" });
+    if (r.photo && /^https?:/.test(r.photo)) {
+      const img = el("img", { src: r.photo, alt: "", loading: "lazy", referrerpolicy: "no-referrer" });
+      img.addEventListener("error", () => { img.remove(); photo.textContent = r.jersey || initials(r.name); });
+      photo.append(img);
+    } else photo.textContent = r.jersey || initials(r.name);
+    const bits = [r.pos, r.age ? `${r.age} años` : ""].filter(Boolean).join(", ");
+    const played = st.pj || st.goals || st.assists;
+    const stat = (n, label) => el("div", null, el("strong", { text: n }), el("span", { text: label }));
+    return el("li", { class: `pcard${r.injury ? " hurt" : ""}` },
+      el("div", { class: "pc-top" }, photo,
+        el("div", { class: "pc-id" },
+          el("strong", { class: "pc-name", text: r.name }),
+          bits ? el("span", { class: "meta", text: bits }) : null)),
+      r.country ? el("p", { class: "pc-country" },
+        r.flag && /^https?:/.test(r.flag) ? el("img", { src: r.flag, alt: "", loading: "lazy", referrerpolicy: "no-referrer", width: "18", height: "18" }) : null,
+        el("span", { text: r.country })) : null,
+      r.injury ? el("p", { class: "pc-hurt", text: `Lesión: ${r.injury}` }) : null,
+      played ? el("div", { class: "pc-stats" }, stat(st.pj, st.pj === 1 ? "partido" : "partidos"), stat(st.goals, st.goals === 1 ? "gol" : "goles"), stat(st.assists, st.assists === 1 ? "asistencia" : "asistencias"))
+        : el("p", { class: "pc-none", text: "Sin partidos registrados" }));
+  }
+
+  function squadView(roster) {
+    const list = roster.players || [];
+    const ages = list.map((r) => r.age).filter(Boolean);
+    const foreign = list.filter((r) => r.country && r.country !== "Guatemala").length;
+    const facts = [`${list.length} jugadores`,
+      ages.length ? `edad promedio ${(ages.reduce((a, n) => a + n, 0) / ages.length).toFixed(1)} años` : "",
+      foreign ? `${foreign} ${foreign === 1 ? "extranjero" : "extranjeros"}` : ""].filter(Boolean).join(", ");
+    const groups = [];
+    list.forEach((r) => {
+      let g = groups.find((x) => x.name === (r.pos_group || "Otros"));
+      if (!g) { g = { name: r.pos_group || "Otros", order: r.pos_order == null ? 9 : r.pos_order, items: [] }; groups.push(g); }
+      g.items.push(r);
+    });
+    groups.sort((a, b) => a.order - b.order);
+    const stOf = (r) => (playerComp === "all" ? { ...ZERO_STATS, ...(r.stats || {}) } : { ...ZERO_STATS, ...((r.comps || {})[playerComp] || {}) });
+    const scope = playerComp === "all" ? "todas las competencias" : compLabel(playerComp);
+    return el("div", { class: "squad" },
+      el("p", { class: "meta", text: `${facts.charAt(0).toUpperCase()}${facts.slice(1)}. Estadísticas de ${scope}.` }),
+      ...groups.map((g) => el("div", { class: "sq-group" },
+        el("h3", { text: `${g.name} (${g.items.length})` }),
+        el("ul", { class: "pcards" }, ...g.items.map((r) => playerCard(r, stOf(r)))))));
+  }
+
   function renderPlayers() {
     const box = $("players");
     box.replaceChildren();
+    const roster = data.roster && data.roster.players && data.roster.players.length ? data.roster : null;
     const all = (data.players && data.players.players) || [];
-    if (!all.length) {
+    if (roster && all.length) {
+      box.append(el("div", { class: "seg players-view", role: "group", "aria-label": "Vista de jugadores" },
+        ...[["squad", "Plantel"], ["stats", "Estadísticas"]].map(([key, label]) => el("button", { type: "button", "aria-pressed": playersView === key ? "true" : "false", text: label,
+          onclick: () => { playersView = key; renderPlayers(); } }))));
+    }
+    const showSquad = roster && (playersView === "squad" || !all.length);
+    if (!all.length && !roster) {
       box.append(el("p", { class: "empty", text: "Aparecerán cuando haya alineaciones de partidos jugados." }));
       return;
     }
@@ -535,6 +591,7 @@
         ...opts.map(([key, label]) => el("button", { type: "button", "aria-pressed": playerComp === key ? "true" : "false", text: label,
           onclick: () => { playerComp = key; showAllPlayers = false; renderPlayers(); } }))));
     }
+    if (showSquad) { box.append(squadView(roster)); return; }
     const shown = showAllPlayers ? list : list.slice(0, 10);
     const v = (x) => (x ? x : "-");
     const head = el("tr", null,
@@ -1090,7 +1147,7 @@
   }
   let loaded = false;
   async function load() {
-    const names = ["matches", "standings", "news", "meta", "players", "odds", "history"];
+    const names = ["matches", "standings", "news", "meta", "players", "odds", "history", "roster"];
     const res = await Promise.allSettled(names.map(getJson));
     names.forEach((n, i) => { if (res[i].status === "fulfilled") data[n] = res[i].value; });
     if (res[0].status === "rejected" && !data.matches) {

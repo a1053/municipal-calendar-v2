@@ -174,6 +174,30 @@ class BuildTests(unittest.TestCase):
         self.assertIn('"standings": "error"', files["meta.json"])
         self.assertIn('"result": "G"', files["matches.json"])
 
+    ROSTER = {"season": {"displayName": "2026-27 Liga Nacional de Guatemala"}, "athletes": [
+        {"id": "1", "displayName": "Portero Uno", "jersey": "1", "age": 24, "citizenship": "Guatemala", "position": {"abbreviation": "G"}}]}
+
+    def test_roster_is_published_and_falls_back_to_previous(self):
+        def fetch(slug, fixtures=False):
+            return {"events": [comp(2, 1)]} if slug == "gua.1" and not fixtures else None
+
+        def get_json(url):
+            if url.endswith("/teams/7258/roster"):
+                return self.ROSTER
+            raise RuntimeError("sin red")
+        code, files = self.run_build(fetch, get_json)
+        self.assertEqual(code, 0)
+        self.assertIn("roster.json", files)
+        self.assertIn('"Portero"', files["roster.json"])
+        self.assertIn('"roster": "ok"', files["meta.json"])
+        # ESPN caído: se conserva el plantel publicado antes, marcado como viejo
+        with tempfile.TemporaryDirectory() as prev:
+            (Path(prev) / "roster.json").write_text(files["roster.json"], encoding="utf-8")
+            code, files = self.run_build(fetch, mock.Mock(side_effect=RuntimeError("x")), Path(prev))
+        self.assertEqual(code, 0)
+        self.assertIn('"stale": true', files["roster.json"])
+        self.assertIn('"roster": "error"', files["meta.json"])
+
     def test_reuses_previous_standings_when_stale(self):
         def fetch(slug, fixtures=False):
             return {"events": [comp(2, 1)]} if slug == "gua.1" and not fixtures else None

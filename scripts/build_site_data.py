@@ -27,6 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import news_sources
 import onefootball as of_source  # noqa: E402
+import roster as roster_mod  # noqa: E402
 import odds as odds_model  # noqa: E402
 import site_details as sd  # noqa: E402
 import update_calendar as cal  # noqa: E402  (reutiliza API de ESPN y la "base de datos")
@@ -483,6 +484,23 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
     details = build_details(matches, standings, out_dir, now, sources, of_data)
     players = sd.build_players(details, cal.TEAM_ID)
 
+    # Plantel (mejor esfuerzo: si ESPN falla se conserva el último publicado)
+    squad = None
+    try:
+        raw = _get_json(roster_mod.URL.format(slug=LEAGUE_SLUG, team=cal.TEAM_ID))
+        parsed = roster_mod.parse_roster(raw)
+        if parsed:
+            squad = {"updated": stamp, "season": ((raw or {}).get("season") or {}).get("displayName", ""),
+                     "players": roster_mod.attach_stats(parsed, players)}
+        sources["roster"] = "ok" if squad else "sin datos"
+    except Exception as exc:  # noqa: BLE001
+        print(f"Aviso: plantel no disponible ({type(exc).__name__})")
+        sources["roster"] = "error"
+    if squad is None:
+        prev_squad = _previous(prev_dir, "roster.json")
+        if prev_squad and prev_squad.get("players"):   # estadísticas al día sobre el plantel anterior
+            squad = {**prev_squad, "players": roster_mod.attach_stats(prev_squad["players"], players), "stale": True}
+
     if site_url and index_path and index_path.exists():
         text = sd.share_text(matches, now)
         has_img = False
@@ -500,6 +518,7 @@ def build(out_dir: Path, prev_dir: Path | None, now: datetime | None = None,
         "news.json": news,
         **({"odds.json": odds} if odds else {}),
         **({"history.json": history} if history else {}),
+        **({"roster.json": squad} if squad else {}),
         **({"onefootball.json": {"updated": stamp, **of_cache}} if of_cache and of_cache.get("matches") else {}),
         "meta.json": {"updated": stamp, "sources": sources},
     }
