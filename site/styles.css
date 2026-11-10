@@ -624,3 +624,13 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .pc-stats strong{font-size:.98rem;line-height:1.1}
 .pc-stats span{font-size:.62rem;opacity:.65}
 .pc-none{font-size:.72rem;opacity:.6;flex:none}
+
+/* Redes: tarjetas con enlace */
+.social{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.soc-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:16px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.soc-card p{margin:0}
+.soc-head{display:flex;gap:12px;align-items:center}
+.soc-head h3{margin:0}
+.soc-ico{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.2rem;background:#1877f2}
+.soc-card.ig .soc-ico{background:linear-gradient(45deg,#f9a03c,#e1306c 55%,#833ab4)}
+.soc-card .frame{align-self:stretch}
