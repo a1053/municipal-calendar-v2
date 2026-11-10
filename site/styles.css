@@ -625,3 +625,13 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .pc-stats span{font-size:.62rem;opacity:.65}
 .pc-none{font-size:.72rem;opacity:.6;flex:none}
 
+/* Marcas en la alineación: tarjetas, goles y cambios */
+.pitch .pl{position:absolute}
+.pl-marks{position:absolute;top:-6px;right:-14px;display:flex;gap:1px;font-style:normal}
+.li-marks{display:inline-flex;gap:3px;margin-left:6px;align-items:center}
+.mk{font-style:normal;font-size:.72rem;line-height:1}
+.mk-yellow,.mk-red{display:inline-block;width:8px;height:11px;border-radius:1px}
+.mk-yellow{background:#ffc400}.mk-red{background:#d01c24}
+.mk-out{color:#ff6b6b}.mk-in{color:#3ecf6e}
+.mk-captain{background:#fff;color:#2b0a0f;border:1px solid #2b0a0f;border-radius:3px;padding:1px 3px;font-weight:800;font-size:.62rem}
+
