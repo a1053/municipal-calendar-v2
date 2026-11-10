@@ -351,6 +351,7 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
             continue
         ok += 1
         m["detail"] = True
+        detail["competition"] = m.get("competition", "")  # para separar las estadísticas por competencia
         used.append(detail)
         payload = {"id": m["id"], "updated": now.strftime(cal.STAMP), "rival": rival,
                    **{k: detail[k] for k in ("events", "commentary", "lineups", "stats")}}

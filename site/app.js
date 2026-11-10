@@ -8,6 +8,7 @@
   let data = { matches: null, standings: null, news: null, meta: null, players: null };
   let newsFeed = "municipal";
   let showAllPlayers = false;
+  let playerComp = "all";
   let timer = null;
 
   // ---------- utilidades ----------
@@ -513,10 +514,26 @@
   function renderPlayers() {
     const box = $("players");
     box.replaceChildren();
-    const list = (data.players && data.players.players) || [];
-    if (!list.length) {
+    const all = (data.players && data.players.players) || [];
+    if (!all.length) {
       box.append(el("p", { class: "empty", text: "Aparecerán cuando haya alineaciones de partidos jugados." }));
       return;
+    }
+    // Competencias que aparecen en los datos: la liga primero.
+    const found = [...new Set(all.flatMap((p) => Object.keys(p.comps || {})))];
+    found.sort((a, b) => (a === LEAGUE() ? -1 : b === LEAGUE() ? 1 : a.localeCompare(b, "es")));
+    if (playerComp !== "all" && !found.includes(playerComp)) playerComp = "all";
+    const zero = { pj: 0, starts: 0, goals: 0, assists: 0, yellow: 0, red: 0 };
+    const statsOf = (p) => (playerComp === "all" ? p : { ...p, ...zero, ...((p.comps || {})[playerComp] || {}) });
+    const list = all.map(statsOf)
+      .filter((p) => p.pj || p.goals || p.assists || p.yellow || p.red)
+      .sort((a, b) => b.goals - a.goals || b.assists - a.assists || b.pj - a.pj || a.name.localeCompare(b.name, "es"));
+
+    if (found.length > 1) {
+      const opts = [["all", "Todas"], ...found.map((c) => [c, compLabel(c)])];
+      box.append(el("div", { class: "seg players-seg", role: "group", "aria-label": "Competencia" },
+        ...opts.map(([key, label]) => el("button", { type: "button", "aria-pressed": playerComp === key ? "true" : "false", text: label,
+          onclick: () => { playerComp = key; showAllPlayers = false; renderPlayers(); } }))));
     }
     const shown = showAllPlayers ? list : list.slice(0, 10);
     const v = (x) => (x ? x : "-");
@@ -537,10 +554,11 @@
       el("td", { text: v(p.assists) }),
       el("td", { class: "opt", text: v(p.yellow) }),
       el("td", { class: "opt", text: v(p.red) })));
+    const scope = playerComp === "all" ? "todas las competencias" : compLabel(playerComp);
     box.append(
       el("div", { class: "tablewrap" }, el("table", { class: "std players" },
-        el("caption", { text: "Con los partidos que tienen alineación en ESPN" }),
-        el("thead", null, head), el("tbody", null, rows))));
+        el("caption", { text: `${scope}, con los partidos que tienen alineación` }),
+        el("thead", null, head), el("tbody", null, rows.length ? rows : el("tr", null, el("td", { colspan: "6", class: "empty", text: "Todavía no hay datos en esta competencia." }))))));
     if (list.length > 10) {
       const b = el("button", { class: "btn btn-ghost", type: "button", text: showAllPlayers ? "Ver menos" : `Ver los ${list.length} jugadores` });
       b.addEventListener("click", () => { showAllPlayers = !showAllPlayers; renderPlayers(); });
