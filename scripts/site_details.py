@@ -6,6 +6,7 @@ funciones devuelven datos vacíos y el sitio se publica igual (sin esa parte).
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -190,31 +191,63 @@ def parse_summary(obj: dict, match: dict) -> dict:
 STAT_KEYS = ("pj", "starts", "goals", "assists", "yellow", "red")
 
 
+def _norm(name: str) -> str:
+    """Nombre sin acentos, en minúsculas y con espacios simples (para emparejar ESPN con OneFootball)."""
+    s = unicodedata.normalize("NFKD", name or "").encode("ascii", "ignore").decode().lower()
+    return " ".join(re.findall(r"[a-z]+", s))
+
+
 def build_players(details: list[dict], team_id: str) -> list[dict]:
     """Totales por jugador y, además, el desglose por competencia en `comps`.
 
     Los totales (pj, goals, ...) siguen sumando todo; `comps` permite separar la liga de las copas.
+    Los detalles marcados con "of": True vienen de OneFootball y solo se agregan para partidos
+    donde ESPN no trae alineación ni eventos; sus jugadores se emparejan con los de ESPN por nombre
+    (sin acentos, o inicial del nombre + apellido si es único) para no duplicar a nadie.
     """
     people: dict[str, dict] = {}
+    by_norm: dict[str, dict] = {}
 
     def get(pid, name):
         key = pid or name
-        return people.setdefault(key, {"id": pid, "name": name, "jersey": "", "pos": "", "pj": 0,
-                                       "starts": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "comps": {}})
+        row = people.setdefault(key, {"id": pid, "name": name, "jersey": "", "pos": "", "pj": 0,
+                                      "starts": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "comps": {}})
+        by_norm.setdefault(_norm(name), row)
+        return row
 
     def bump(row, comp, key, n=1):
         row[key] += n
         if comp:
             row["comps"].setdefault(comp, dict.fromkeys(STAT_KEYS, 0))[key] += n
 
+    def resolve(name):
+        """Jugador ya conocido con ese nombre (o None)."""
+        n = _norm(name)
+        if n in by_norm:
+            return by_norm[n]
+        toks = n.split()
+        if len(toks) >= 2:
+            near = {id(r): r for k, r in by_norm.items()
+                    if len(k.split()) >= 2 and k.split()[-1] == toks[-1] and k.split()[0][:1] == toks[0][:1]}
+            if len(near) == 1:
+                return next(iter(near.values()))
+        return None
+
     by_name: dict[str, dict] = {}
-    for d in details:
+    for d in sorted(details, key=lambda x: bool(x.get("of"))):   # primero ESPN, después OneFootball
         comp = d.get("competition") or ""
+        of = bool(d.get("of"))
+
+        def row_of(pid, name, lineup=False):
+            if of:
+                return resolve(name) or get("", name)
+            return get(pid, name) if lineup else (by_name.get(name) or get(pid, name))
+
         for lu in d.get("lineups", []):
             if lu["team_id"] != team_id:
                 continue
             for p in lu["players"]:
-                row = get(p["id"], p["name"])
+                row = row_of(p["id"], p["name"], lineup=True)
                 by_name[p["name"]] = row
                 row["jersey"] = p["jersey"] or row["jersey"]
                 row["pos"] = p["pos"] or row["pos"]
@@ -223,7 +256,7 @@ def build_players(details: list[dict], team_id: str) -> list[dict]:
         for ev in d.get("events", []):
             if ev["team_id"] != team_id or not ev["player"]:
                 continue
-            row = by_name.get(ev["player"]) or get(ev.get("player_id", ""), ev["player"])
+            row = row_of(ev.get("player_id", ""), ev["player"])
             by_name[ev["player"]] = row
             if ev["kind"] == "goal":
                 bump(row, comp, "goals")
@@ -235,6 +268,8 @@ def build_players(details: list[dict], team_id: str) -> list[dict]:
                 bump(row, comp, "yellow")
             elif ev["kind"] == "red":
                 bump(row, comp, "red")
+            elif ev["kind"] == "sub" and of:   # OneFootball solo da los 11 titulares: el que entra también jugó
+                bump(row, comp, "pj")
     rows = [r for r in people.values() if r["name"]]
     rows.sort(key=lambda r: (-r["goals"], -r["assists"], -r["pj"], r["name"]))
     return rows

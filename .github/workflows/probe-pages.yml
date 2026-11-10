@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/pages_probe.py
+      - run: pip install -q requests pillow 2>&1 | tail -1; python3 scripts/pages_probe.py
