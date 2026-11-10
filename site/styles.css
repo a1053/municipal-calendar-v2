@@ -537,3 +537,29 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .m .t-row .s { font-size: 1.6rem; }
 .m .chip { border-radius: 50%; }
 @media (prefers-reduced-motion: reduce) { .m { transition: none; } .m:hover { transform: none; } }
+
+/* ===== Navegación fija abajo en el celular ===== */
+.tabbar, .more-menu { display: none; }
+@media (max-width: 720px) {
+  .top nav { display: none; }
+  body { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+  .tabbar {
+    position: fixed; inset: auto 0 0 0; z-index: 30; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding-bottom: env(safe-area-inset-bottom); background: var(--vino); border-top: 3px solid var(--rojo);
+  }
+  .tabbar a, .tabbar button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; padding: 6px 2px;
+    background: none; border: 0; color: #e8cfd2; font: 600 .72rem/1 var(--font-body); text-decoration: none; cursor: pointer;
+  }
+  .tabbar svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tabbar [aria-current="true"], .tabbar [aria-expanded="true"] { color: var(--led); }
+  .tabbar [aria-current="true"] svg { stroke-width: 2.3; }
+  .tabbar:has(.tab-more[aria-expanded="true"]) [aria-current="true"]:not(.tab-more) { color: #e8cfd2; }
+  .more-menu {
+    position: fixed; right: 8px; bottom: calc(66px + env(safe-area-inset-bottom)); z-index: 31; display: grid; min-width: 210px; padding: 6px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  .more-menu[hidden] { display: none; }
+  .more-menu a { padding: 13px 14px; border-radius: 8px; font-weight: 600; text-decoration: none; }
+  .more-menu a:active, .more-menu a:hover { background: var(--bg); }
+}

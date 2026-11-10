@@ -203,3 +203,9 @@ Para los partidos donde ESPN no trae alineación ni eventos (casi toda la Liga B
 usan los datos de OneFootball: titulares, goles, tarjetas y quién entró de cambio. Los jugadores se emparejan con los de
 ESPN por nombre (sin acentos, con nombres más largos o con errores de tipeo) para no duplicarlos. Si ESPN sí trae datos
 del partido, no se suma OneFootball, para no contar dos veces. OneFootball no trae asistencias ni suplentes que no entraron.
+
+## Navegación en el celular
+
+En pantallas angostas (hasta 720 px) el menú de arriba se oculta y aparece una barra fija abajo con Inicio, Partidos,
+Tabla, Liguilla y "Más" (Jugadores, Noticias, Rendimiento, Redes y Calendario completo). La pestaña activa cambia sola
+según la sección que se está viendo. En computadora se mantiene el menú de arriba.
