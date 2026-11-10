@@ -1,0 +1,12 @@
+name: Probar datos publicados
+on:
+  push:
+    branches: [probe-pages]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/pages_probe.py
