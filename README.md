@@ -216,6 +216,13 @@ El botón "Compartir imagen" de cada partido genera en el navegador una tarjeta 
 marcador y goleadores, o con fecha y hora si el partido no se ha jugado. Se comparte como archivo si el teléfono lo
 permite; si no, se descarga. Si un escudo no carga, se dibujan las iniciales. Código: `site/sharecard.js`.
 
+## Plantel con fichas de jugador
+
+En Jugadores hay dos vistas: **Plantel** (fichas por posición con número o foto, edad, nacionalidad, lesión si ESPN la
+reporta y PJ/goles/asistencias) y **Estadísticas** (la tabla). El selector de competencia también filtra las fichas.
+El plantel sale del roster de ESPN (`scripts/roster.py`, publicado como `data/roster.json`); si ESPN falla se conserva el
+último publicado (`stale`). Las estadísticas se cruzan con las de `players.json` por nombre.
+
 ## Previa del partido ("Cómo llegan")
 
 En la página de un partido por jugar, arriba aparece la comparación de los dos equipos (`site/previa.js`): posición, puntos,
