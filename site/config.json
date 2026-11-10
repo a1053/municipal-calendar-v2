@@ -2,10 +2,8 @@
   "team": "Municipal",
   "team_id": "7258",
   "timezone": "America/Guatemala",
-  "facebook_url": "https://www.facebook.com/RojosDelMunicipal/",
   "instagram_handle": "rojos_municipal",
   "show_instagram_embed": true,
-  "show_facebook_embed": true,
   "liguilla": { "tournament": "Apertura 2026", "regular_rounds": 22, "direct": 2, "qualify": 6 },
   "competition_labels": {
     "Liga Nacional de Guatemala": "Liga Bantrab",
