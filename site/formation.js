@@ -38,7 +38,28 @@
     return { formation: `${count[1]}-${count[2]}-${count[3]}`, players: [...sorted, ...(players || []).filter((p) => !p.starter)] };
   }
 
-  const api = { estimate, same };
+  /** Marcas de cada jugador (goles, tarjetas, cambios) sacadas de los eventos del partido. Alineaciones a mano ya las traen. */
+  function withMarks(lineup, events) {
+    if (!lineup || lineup.manual || !(events || []).length) return lineup;
+    const evs = events.filter((e) => !e.team_id || !lineup.team_id || String(e.team_id) === String(lineup.team_id));
+    const is = (a, b) => a && b && (norm(a).join(" ") === norm(b).join(" ") || same(a, b));
+    const players = lineup.players.map((p) => {
+      const marks = [];
+      evs.forEach((e) => {
+        if (e.kind === "goal" && is(p.name, e.player)) marks.push("goal");
+        else if (e.kind === "yellow" && is(p.name, e.player)) marks.push("yellow");
+        else if (e.kind === "red" && is(p.name, e.player)) marks.push("red");
+        else if (e.kind === "sub") {
+          if (is(p.name, e.player)) marks.push("in");
+          if (is(p.name, e.player_out)) marks.push("out");
+        }
+      });
+      return marks.length ? { ...p, marks } : p;
+    });
+    return { ...lineup, players };
+  }
+
+  const api = { estimate, same, withMarks };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.MuniFormation = api;
 })(typeof window !== "undefined" ? window : globalThis);

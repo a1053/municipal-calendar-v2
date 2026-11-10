@@ -967,11 +967,13 @@
     return pitch;
   }
 
-  function lineupsBlock(m, lineups, of) {
+  function lineupsBlock(m, lineups, of, events) {
     if (!lineups.length) return null;
     const ordered = [...lineups].sort((a, b) => (a.team_id === m.home.id ? -1 : 1) - (b.team_id === m.home.id ? -1 : 1));
-    return section("Alineaciones", el("div", { class: "lineups" }, ...ordered.map((lu0) => {
+    return section("Alineaciones", el("div", { class: "lineups" }, ...ordered.map((lu00) => {
+      let lu0 = lu00;
       // Sin formación en la fuente: para Municipal se estima con las posiciones del plantel de ESPN.
+      if (window.MuniFormation) lu0 = window.MuniFormation.withMarks(lu0, events);
       let lu = lu0, estimated = false;
       if (!lu0.formation && window.MuniFormation && isMe({ id: lu0.team_id, name: lu0.team }) && data.roster && data.roster.players) {
         const est = window.MuniFormation.estimate(lu0.players, data.roster.players);
@@ -1018,7 +1020,7 @@
       ofEventsBlock(m, detail.of, detail.events),
       commentaryBlock(m, detail.commentary),
       statsBlock(m, detail.stats || []),
-      (detail.lineups || []).length ? lineupsBlock(m, detail.lineups) : lineupsBlock(m, (detail.of && detail.of.lineups) || [], detail.of),
+      (detail.lineups || []).length ? lineupsBlock(m, detail.lineups, null, detail.events) : lineupsBlock(m, (detail.of && detail.of.lineups) || [], detail.of, (detail.of && detail.of.events) || []),
     ].filter(Boolean) : [];
     if (prev) parts.unshift(prev);
     else { const fcard = forecastCard(m); if (fcard) parts.unshift(fcard); }

@@ -243,3 +243,6 @@ formación (por ejemplo, copiada de Transfermarkt). Cada entrada lleva `date` (d
 los 11 `starters` en orden (portero, luego cada fila de izquierda a derecha, de la defensa al ataque) y el `bench`.
 Las `marks` (`yellow`, `red`, `goal`, `out`, `in`, `captain`) aparecen en la cancha y en el banquillo. Solo se usa para mostrar;
 no entra en las estadísticas de jugadores. Ya incluye el Municipal 3-1 Comunicaciones de la jornada 17.
+
+Para los demás partidos, las marcas (goles, tarjetas amarillas y rojas, entró y salió) se calculan solas con los eventos
+del partido y se dibujan en la cancha y en las listas (`withMarks` en `site/formation.js`).
