@@ -161,6 +161,49 @@ class PlayersTests(unittest.TestCase):
         rows = sd.build_players([sd.parse_summary(SUMMARY, match())], MUNI)
         self.assertEqual(rows[0]["comps"], {})
 
+    def of_detail(self, comp="Liga Nacional de Guatemala"):
+        def pl(name, n):
+            return {"id": "", "name": name, "jersey": str(n), "pos": "", "starter": True, "place": 0, "played": True}
+        return {"of": True, "competition": comp,
+                "lineups": [{"team_id": MUNI, "team": "Municipal", "home_away": "home", "formation": "",
+                             "players": [pl("Perez", 9), pl("Nuevo Jugador", 30)]},
+                            {"team_id": RIVAL, "team": "Rival", "home_away": "away", "formation": "", "players": [pl("Rival Uno", 1)]}],
+                "events": [
+                    {"kind": "goal", "player": "Perez", "team_id": MUNI, "assist": "", "penalty": False, "min": "10'", "sort": 10.0},
+                    {"kind": "yellow", "player": "Nuevo Jugador", "team_id": MUNI, "assist": "", "min": "20'", "sort": 20.0},
+                    {"kind": "sub", "player": "Suplente Nuevo", "team_id": MUNI, "assist": "", "min": "60'", "sort": 60.0, "text": "Entra Suplente Nuevo, sale X"},
+                    {"kind": "goal", "player": "Rival Uno", "team_id": RIVAL, "assist": "", "min": "70'", "sort": 70.0}]}
+
+    def test_onefootball_matches_names_without_duplicating(self):
+        espn = {**sd.parse_summary(SUMMARY, match()), "competition": "Concacaf Central American Cup"}
+        rows = sd.build_players([self.of_detail(), espn], MUNI)   # el orden de entrada no importa
+        by = {r["name"]: r for r in rows}
+        perez = by["Pérez"]   # "Perez" (OneFootball, sin acento) es el mismo "Pérez" de ESPN
+        self.assertEqual(sum(1 for r in rows if "rez" in r["name"]), 1)
+        self.assertEqual(perez["goals"], 2)   # 1 de ESPN + 1 de OneFootball
+        self.assertEqual(perez["comps"]["Liga Nacional de Guatemala"]["goals"], 1)
+        self.assertEqual(perez["comps"]["Concacaf Central American Cup"]["goals"], 1)
+        self.assertEqual(by["Nuevo Jugador"]["pj"], 1)
+        self.assertEqual(by["Nuevo Jugador"]["yellow"], 1)
+        self.assertEqual((by["Suplente Nuevo"]["pj"], by["Suplente Nuevo"]["starts"]), (1, 0))   # entró de cambio
+        self.assertNotIn("Rival Uno", by)
+
+    def test_onefootball_surname_and_initial_match(self):
+        espn = {"competition": "X", "events": [], "lineups": [{"team_id": MUNI, "players": [
+            {"id": "10", "name": "Pedro Pérez", "jersey": "10", "pos": "DEL", "starter": True, "played": True}]}]}
+        of = self.of_detail()
+        of["lineups"][0]["players"][0]["name"] = "Pedro Antonio Pérez"   # nombre más largo en OneFootball
+        of["events"][0]["player"] = "Pedro Antonio Pérez"
+        rows = sd.build_players([espn, of], MUNI)
+        perez = [r for r in rows if r["name"].endswith("rez")]
+        self.assertEqual(len(perez), 1)
+        self.assertEqual((perez[0]["pj"], perez[0]["goals"]), (2, 1))
+        # con un solo nombre no se adivina: "Pérez" suelto no se une a "Pedro Pérez"
+        solo = {"competition": "X", "events": [], "lineups": [{"team_id": MUNI, "players": [
+            {"id": "5", "name": "Pérez", "jersey": "5", "pos": "", "starter": True, "played": True}]}]}
+        rows = sd.build_players([solo, of], MUNI)
+        self.assertEqual(sum(1 for r in rows if r["name"].endswith("rez")), 2)
+
     def test_empty(self):
         self.assertEqual(sd.build_players([], MUNI), [])
 
