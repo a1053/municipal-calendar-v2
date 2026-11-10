@@ -907,8 +907,23 @@
         else { await navigator.clipboard.writeText(url); share.textContent = "Enlace copiado"; }
       } catch (_) { /* el usuario canceló */ }
     });
+    const img = el("button", { class: "btn btn-ghost", type: "button", text: "Compartir imagen" });
+    img.addEventListener("click", async () => {
+      if (!window.MuniCard) return;
+      img.disabled = true;
+      try {
+        const model = window.MuniCard.cardModel(m, (detail && detail.events) || (detail && detail.of && detail.of.events) || [], {
+          competition: compLabel(m.competition), when: m.start ? `${dayLong(m.start)}, ${timeOf(m.start)}` : "", footer: "Municipal en vivo" });
+        const blob = await window.MuniCard.makeBlob(model);
+        if (!blob) throw new Error("sin imagen");
+        const file = new File([blob], "municipal.png", { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: document.title });
+        else { const a = el("a", { href: URL.createObjectURL(blob), download: "municipal.png" }); document.body.append(a); a.click(); a.remove(); }
+      } catch (e) { if (!e || e.name !== "AbortError") img.textContent = "No se pudo crear la imagen"; }
+      img.disabled = false;
+    });
     body.append(el("p", { class: "actions" },
-      el("a", { class: "btn", href: safeUrl(m.url), target: "_blank", rel: "noopener", text: "Ver este partido en ESPN" }), share,
+      el("a", { class: "btn", href: safeUrl(m.url), target: "_blank", rel: "noopener", text: "Ver este partido en ESPN" }), share, img,
       window.MuniShare ? waButton(window.MuniShare.matchText(m, { competition: compLabel(m.competition), url: location.href,
         when: m.start ? `${dayLong(m.start)}, ${timeOf(m.start)}` : "" })) : null));
   }

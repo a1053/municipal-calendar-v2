@@ -209,3 +209,9 @@ del partido, no se suma OneFootball, para no contar dos veces. OneFootball no tr
 En pantallas angostas (hasta 720 px) el menú de arriba se oculta y aparece una barra fija abajo con Inicio, Partidos,
 Tabla, Liguilla y "Más" (Jugadores, Noticias, Rendimiento, Redes y Calendario completo). La pestaña activa cambia sola
 según la sección que se está viendo. En computadora se mantiene el menú de arriba.
+
+## Imagen para compartir
+
+El botón "Compartir imagen" de cada partido genera en el navegador una tarjeta vertical (1080x1920) con escudos,
+marcador y goleadores, o con fecha y hora si el partido no se ha jugado. Se comparte como archivo si el teléfono lo
+permite; si no, se descarga. Si un escudo no carga, se dibujan las iniciales. Código: `site/sharecard.js`.
