@@ -1,0 +1,12 @@
+name: Probar plantel
+on:
+  push:
+    branches: [probe-roster]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/roster_probe.py
