@@ -178,6 +178,49 @@
       el("p", { class: "liga-help", text: "Estimación con los goles a favor y en contra de cada equipo en el torneo y ventaja de local. No considera lesiones ni alineaciones. Son probabilidades, no pronósticos seguros." }));
   }
 
+  /** "Cómo llegan": los dos equipos lado a lado con los datos que ya tenemos (tabla, últimos partidos, goleadores). */
+  function previaBlock(m, rival) {
+    const P = window.MuniPrevia;
+    if (!P || m.state !== "pre" || m.postponed) return null;
+    const g = data.standings && data.standings.groups && data.standings.groups[0];
+    const league = !m.slug || m.slug === "gua.1";
+    const cmp = league && g ? P.compare(g.rows, m.home.id, m.away.id) : null;
+    const matches = (data.matches && data.matches.matches) || [];
+    const formOf = (side) => (isMe(side) ? P.recentForm(matches, side.id, 5)
+      : rival && String(rival.team_id) === String(side.id) ? (rival.form || []) : []);
+    const forms = [formOf(m.home), formOf(m.away)];
+    const mine = isMe(m.home) || isMe(m.away);
+    const scorers = mine ? P.topScorers((data.players && data.players.players) || [], 3) : [];
+    const words = cmp ? P.headline(cmp) : [];
+    if (!cmp && !forms[0].length && !forms[1].length && !scorers.length) return null;
+
+    const team = (side) => el("div", { class: "pv-team" }, badge(side), el("strong", { class: isMe(side) ? "me" : "", text: side.name }));
+    const formCol = (list) => el("div", { class: "pv-form" }, list.length
+      ? list.map((f) => el("span", { class: `chip ${f.result}`, title: `${f.home ? "Local" : "Visitante"} contra ${f.vs}, ${f.score}`, text: f.result }))
+      : el("span", { class: "meta", text: "Sin datos" }));
+    const kids = [el("div", { class: "pv-head" }, team(m.home), el("span", { class: "pv-vs", text: "vs" }), team(m.away))];
+    if (words.length) kids.push(el("p", { class: "pv-words", text: words.join(" ") }));
+    const grid = [];
+    if (cmp) {
+      cmp.rows.forEach((r) => grid.push(
+        el("span", { class: `pv-v${r.better === "a" ? " best" : ""}`, text: r.a }),
+        el("span", { class: "pv-l", text: r.label }),
+        el("span", { class: `pv-v${r.better === "b" ? " best" : ""}`, text: r.b })));
+    }
+    if (forms[0].length || forms[1].length) {
+      grid.push(formCol(forms[0]), el("span", { class: "pv-l", text: "Últimos 5 partidos" }), formCol(forms[1]));
+    }
+    if (grid.length) kids.push(el("div", { class: "pv-grid" }, ...grid));
+    if (scorers.length) {
+      kids.push(el("div", { class: "pv-scorers" }, el("h3", { text: "Goleadores de Municipal" }),
+        el("ul", { class: "plain" }, ...scorers.map((p) => el("li", null, el("strong", { text: p.name }),
+          el("span", { class: "meta", text: ` ${p.goals} ${p.goals === 1 ? "gol" : "goles"}` }))))));
+    }
+    const fc = forecastCard(m);
+    if (fc) kids.push(fc);
+    return section("Cómo llegan", ...kids);
+  }
+
   function matchRow(m) {
     const showScore = m.state !== "pre";
     const row = (side) => el("div", { class: "t-row" },
@@ -738,14 +781,15 @@
     return el("section", { class: "mv-sec" }, el("h2", { text: title }), ...kids);
   }
 
-  function rivalBlock(r) {
+  function rivalBlock(r, compact) {
     const bits = [];
     if (r.pos) bits.push(`${r.pos}.º en la tabla`);
     if (r.pts != null) bits.push(`${r.pts} puntos${r.pj ? ` en ${r.pj} partidos` : ""}`);
-    return section("El rival",
-      el("div", { class: "rival" }, badge({ logo: r.logo, name: r.name }),
+    // compact: la previa ("Cómo llegan") ya muestra al rival, su posición y sus últimos partidos
+    return section(compact ? "Historial" : "El rival",
+      compact ? null : el("div", { class: "rival" }, badge({ logo: r.logo, name: r.name }),
         el("div", null, el("strong", { text: r.name }), bits.length ? el("div", { class: "meta", text: bits.join(", ") }) : null)),
-      r.form && r.form.length ? el("p", { class: "form" }, el("span", { text: "Sus últimos partidos:" }),
+      !compact && r.form && r.form.length ? el("p", { class: "form" }, el("span", { text: "Sus últimos partidos:" }),
         ...r.form.map((f) => el("span", { class: `chip ${f.result}`, title: `${f.home ? "Local" : "Visitante"} contra ${f.vs}, ${f.score}`, text: f.result }))) : null,
       r.h2h && r.h2h.record ? el("div", { class: "h2h" }, el("h3", { text: "Historial entre ambos" }),
         el("p", { class: "h2h-rec" },
@@ -887,16 +931,17 @@
     let detail = null;
     try { detail = await getJson(`match/${id}`); } catch (_) { detail = null; }
     if (!location.hash.startsWith(`#/partido/${id}`)) return; // el usuario ya se fue
+    const prev = previaBlock(m, detail && detail.rival);
     const parts = detail ? [
-      m.state === "pre" && detail.rival ? rivalBlock(detail.rival) : null,
+      m.state === "pre" && detail.rival ? rivalBlock(detail.rival, !!prev) : null,
       timeline(m, detail.events || []),
       ofEventsBlock(m, detail.of, detail.events),
       commentaryBlock(m, detail.commentary),
       statsBlock(m, detail.stats || []),
       (detail.lineups || []).length ? lineupsBlock(m, detail.lineups) : lineupsBlock(m, (detail.of && detail.of.lineups) || [], detail.of),
     ].filter(Boolean) : [];
-    const fcard = forecastCard(m);
-    if (fcard) parts.unshift(fcard);
+    if (prev) parts.unshift(prev);
+    else { const fcard = forecastCard(m); if (fcard) parts.unshift(fcard); }
     if (parts.length) body.append(...parts);
     else body.append(el("p", { class: "empty", text: m.state === "pre" ? "Las alineaciones y estadísticas aparecen cuando empieza el partido." : "ESPN todavía no publica el detalle de este partido." }));
     const share = el("button", { class: "btn btn-ghost", type: "button", text: "Compartir este partido" });
