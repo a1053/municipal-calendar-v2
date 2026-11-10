@@ -1113,18 +1113,11 @@
     if (socialBuilt) return;
     socialBuilt = true;
     const box = $("social");
-    const x = config.x_handle, ig = config.instagram_handle;
-    if (x) {
-      const frame = el("div", { class: "frame", id: "x-frame" });
-      box.append(el("div", null, el("h3", { text: `X (@${x})` }), frame,
-        el("a", { class: "btn", href: `https://x.com/${encodeURIComponent(x)}`, target: "_blank", rel: "noopener", text: "Abrir en X" })));
-      if (config.show_x_embed !== false) lazy(frame, () => {
-        frame.append(el("a", { class: "twitter-timeline", "data-height": "520", "data-lang": "es",
-          "data-theme": matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-          "data-chrome": "noheader nofooter transparent", href: `https://twitter.com/${encodeURIComponent(x)}`, text: `Posts de @${x}` }));
-        const s = el("script", { src: "https://platform.twitter.com/widgets.js", async: true, charset: "utf-8" });
-        document.body.append(s);
-      });
+    const ig = config.instagram_handle, fb = config.facebook_url;
+    if (fb && /^https:\/\/(www\.)?facebook\.com\//.test(fb)) {
+      box.append(el("div", null, el("h3", { text: "Facebook" }),
+        el("p", { class: "meta", text: "Publicaciones y avisos del club." }),
+        el("a", { class: "btn", href: fb, target: "_blank", rel: "noopener", text: "Abrir en Facebook" })));
     }
     if (ig) {
       const frame = el("div", { class: "frame" });

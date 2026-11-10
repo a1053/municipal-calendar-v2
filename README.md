@@ -70,7 +70,7 @@ Workflow permissions* y activa **Read and write permissions**.
 
 Además del calendario, este repo publica un sitio con el marcador del próximo
 partido (o el que está en vivo), partidos y resultados, la tabla de la Liga
-Bantrab con Municipal resaltado, noticias y redes (X e Instagram).
+Bantrab con Municipal resaltado, noticias y redes (Facebook e Instagram).
 
 ```
 ESPN + Google Noticias ──► scripts/build_site_data.py ──► site/ ──► GitHub Pages
@@ -78,7 +78,7 @@ ESPN + Google Noticias ──► scripts/build_site_data.py ──► site/ ─�
 ```
 
 - `site/` es el sitio estático (HTML, CSS y JS, sin pasos de compilación).
-  `site/config.json` guarda las cuentas de X e Instagram y los nombres de las
+  `site/config.json` guarda el enlace de Facebook y la cuenta de Instagram y los nombres de las
   competencias.
 - Los datos (`data/*.json` dentro del sitio publicado) se generan en cada
   corrida y **no se guardan en el repo**, así el historial no se llena de commits.
