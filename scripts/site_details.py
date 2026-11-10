@@ -8,6 +8,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from collections import defaultdict
+from difflib import SequenceMatcher
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -197,6 +198,22 @@ def _norm(name: str) -> str:
     return " ".join(re.findall(r"[a-z]+", s))
 
 
+def _close(a: str, b: str) -> bool:
+    """¿Son el mismo jugador escrito distinto? a y b ya vienen normalizadas (_norm).
+
+    Sí: mismo nombre y comparten otro nombre/apellido ("Elvi Elington" / "Elvi Gerardo Elington Cayetano"),
+    misma inicial y mismo último apellido, o casi iguales letra por letra (error de tipeo). No: "Rudy Barrientos" / "Rudy Muñoz".
+    """
+    ta, tb = a.split(), b.split()
+    if len(ta) < 2 or len(tb) < 2:
+        return False
+    if ta[0] == tb[0] and set(ta[1:]) & set(tb[1:]):
+        return True
+    if ta[-1] == tb[-1] and ta[0][:1] == tb[0][:1]:
+        return True
+    return SequenceMatcher(None, a, b).ratio() >= 0.9
+
+
 def build_players(details: list[dict], team_id: str) -> list[dict]:
     """Totales por jugador y, además, el desglose por competencia en `comps`.
 
@@ -225,13 +242,8 @@ def build_players(details: list[dict], team_id: str) -> list[dict]:
         n = _norm(name)
         if n in by_norm:
             return by_norm[n]
-        toks = n.split()
-        if len(toks) >= 2:
-            near = {id(r): r for k, r in by_norm.items()
-                    if len(k.split()) >= 2 and k.split()[-1] == toks[-1] and k.split()[0][:1] == toks[0][:1]}
-            if len(near) == 1:
-                return next(iter(near.values()))
-        return None
+        near = {id(r): r for k, r in by_norm.items() if _close(k, n)}
+        return next(iter(near.values())) if len(near) == 1 else None
 
     by_name: dict[str, dict] = {}
     for d in sorted(details, key=lambda x: bool(x.get("of"))):   # primero ESPN, después OneFootball
