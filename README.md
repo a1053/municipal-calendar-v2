@@ -229,3 +229,9 @@ En la página de un partido por jugar, arriba aparece la comparación de los dos
 puntos y goles por partido, diferencia de goles, últimos 5 partidos, goleadores de Municipal y el pronóstico. Solo usa datos
 que ya tiene el sitio. El que va mejor en cada dato se marca con una raya roja (con los valores redondeados que se ven, un
 empate no marca a nadie). En partidos que no son de liga solo aparecen lo que haya (forma y goleadores).
+
+## Dibujo táctico con formación estimada
+
+Cuando la alineación de Municipal no trae formación (OneFootball), la página cruza los 11 titulares con las posiciones
+del plantel de ESPN y cuenta defensas, medios y delanteros para dibujar la cancha (por ejemplo 4-4-2). Se marca como
+"estimada". Si un titular no se encuentra en el plantel, no se dibuja nada en vez de inventar. Código: `site/formation.js`.
