@@ -315,6 +315,12 @@ def _previous(prev_dir: Path | None, name: str):
 MAX_DETAILS = 45
 
 
+def _has_team_data(detail: dict, team_id: str) -> bool:
+    """¿ESPN trae alineación o eventos de nuestro equipo en este partido?"""
+    return (any(lu.get("team_id") == team_id for lu in detail.get("lineups", []))
+            or any(ev.get("team_id") == team_id for ev in detail.get("events", [])))
+
+
 def build_details(matches: list[dict], standings: dict, out_dir: Path, now: datetime, sources: dict,
                   of_data: dict | None = None) -> list[dict]:
     """Detalle por partido (cronología, alineaciones, estadísticas, rival).
@@ -353,6 +359,10 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
         m["detail"] = True
         detail["competition"] = m.get("competition", "")  # para separar las estadísticas por competencia
         used.append(detail)
+        if extra and not _has_team_data(detail, cal.TEAM_ID):
+            # ESPN no trae alineación ni eventos de este partido: las estadísticas de jugadores usan OneFootball
+            used.append({"of": True, "competition": m.get("competition", ""),
+                         "lineups": extra["lineups"], "events": extra["events"]})
         payload = {"id": m["id"], "updated": now.strftime(cal.STAMP), "rival": rival,
                    **{k: detail[k] for k in ("events", "commentary", "lineups", "stats")}}
         if extra:

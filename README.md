@@ -196,3 +196,10 @@ También se corrigió que el "Minuto a minuto" de ESPN se leía pero no se guard
 La tabla de Jugadores muestra por defecto el total de todas las competencias ("Todas"). Si hay partidos de más de una
 competencia, aparece un selector para ver solo la Liga Bantrab o cada copa. `players.json` guarda el total y el
 desglose por competencia (`comps`), y los dos siempre suman lo mismo.
+
+### Jugadores con OneFootball
+
+Para los partidos donde ESPN no trae alineación ni eventos (casi toda la Liga Bantrab), las estadísticas de Jugadores
+usan los datos de OneFootball: titulares, goles, tarjetas y quién entró de cambio. Los jugadores se emparejan con los de
+ESPN por nombre (sin acentos, con nombres más largos o con errores de tipeo) para no duplicarlos. Si ESPN sí trae datos
+del partido, no se suma OneFootball, para no contar dos veces. OneFootball no trae asistencias ni suplentes que no entraron.
