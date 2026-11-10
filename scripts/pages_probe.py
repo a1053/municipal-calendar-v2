@@ -1,15 +1,14 @@
-import json, urllib.request
-from collections import Counter
-B = "https://a1053.github.io/municipal-calendar-v2/data/"
+import re, urllib.request
+B = "https://a1053.github.io/municipal-calendar-v2/"
 def get(n):
-    with urllib.request.urlopen(B + n, timeout=30) as r:
-        return json.load(r)
-pl = get("players.json")
-ps = pl["players"]
-print("RES players updated:", pl.get("updated"), "| jugadores:", len(ps))
-print("RES claves de comps:", dict(Counter(k for p in ps for k in (p.get("comps") or {}))), "| con comps:", sum("comps" in p for p in ps))
-print("RES PJ max:", max((p["pj"] for p in ps), default=0), "| goles totales:", sum(p["goals"] for p in ps))
-for p in ps[:5]:
-    print("RES  ", p["name"], p["pj"], p["goals"], p.get("comps"))
-m = get("matches.json")["matches"]
-print("RES partidos:", dict(Counter((x["competition"], x["state"], bool(x.get("detail"))) for x in m)))
+    req = urllib.request.Request(B + n, headers={"Cache-Control": "no-cache"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return r.read().decode("utf-8", "replace"), dict(r.headers)
+js, h = get("app.js")
+print("RES app.js: tiene selector:", "players-seg" in js, "| playerComp:", "playerComp" in js, "| cache-control:", h.get("Cache-Control"), "| last-modified:", h.get("Last-Modified"))
+sw, _ = get("sw.js")
+print("RES sw cache:", re.findall(r"municipal-v\d+", sw)[:1])
+css, _ = get("styles.css")
+print("RES css .players-seg:", ".players-seg" in css, "| .seg:", ".seg {" in css)
+html, _ = get("index.html")
+print("RES index: id jugadores:", 'id="jugadores"' in html, 'id="players"' in html)
