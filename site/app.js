@@ -1120,29 +1120,12 @@
     if (socialBuilt) return;
     socialBuilt = true;
     const box = $("social");
-    const ig = config.instagram_handle, fb = config.facebook_url;
-    // Las publicaciones incrustadas dependen de Facebook e Instagram y suelen verse viejas o vacías:
-    // por defecto son tarjetas con enlace. Se pueden encender con show_facebook_embed / show_instagram_embed.
-    const card = (cls, name, handle, blurb, href, cta, embed) => {
-      const frame = embed ? el("div", { class: "frame" }) : null;
-      box.append(el("div", { class: `soc-card ${cls}` },
-        el("div", { class: "soc-head" }, el("span", { class: "soc-ico", "aria-hidden": "true", text: name[0] }),
-          el("div", null, el("h3", { text: name }), el("p", { class: "meta", text: handle }))),
-        el("p", { text: blurb }), frame,
-        el("a", { class: "btn", href, target: "_blank", rel: "noopener", text: cta })));
-      return frame;
-    };
-    if (fb && /^https:\/\/(www\.)?facebook\.com\//.test(fb)) {
-      const frame = card("fb", "Facebook", "Rojos del Municipal", "Avisos, fotos y videos del club.", fb, "Abrir en Facebook", config.show_facebook_embed === true);
-      if (frame) lazy(frame, () => {
-        const w = Math.max(180, Math.min(500, Math.floor(frame.clientWidth) || 340));
-        frame.append(el("iframe", { src: `https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(fb)}&tabs=timeline&width=${w}&height=520&small_header=true&adapt_container_width=true&hide_cover=true&show_facepile=false`,
-          title: "Publicaciones de Municipal en Facebook", loading: "lazy", scrolling: "no", style: "border:0;overflow:hidden", width: String(w), height: "520", allow: "encrypted-media" }));
-      });
-    }
+    const ig = config.instagram_handle;
     if (ig) {
-      const frame = card("ig", "Instagram", `@${ig}`, "Fotos, reels e historias del equipo.", `https://www.instagram.com/${encodeURIComponent(ig)}/`, "Abrir en Instagram", config.show_instagram_embed === true);
-      if (frame) lazy(frame, () => {
+      const frame = el("div", { class: "frame" });
+      box.append(el("div", null, el("h3", { text: `Instagram (@${ig})` }), frame,
+        el("a", { class: "btn", href: `https://www.instagram.com/${encodeURIComponent(ig)}/`, target: "_blank", rel: "noopener", text: "Abrir en Instagram" })));
+      if (config.show_instagram_embed !== false) lazy(frame, () => {
         frame.append(el("iframe", { src: `https://www.instagram.com/${encodeURIComponent(ig)}/embed`, title: `Publicaciones de @${ig} en Instagram`, loading: "lazy", scrolling: "no" }));
       });
     }
