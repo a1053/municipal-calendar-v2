@@ -600,3 +600,27 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .pv-form { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; }
 .pv-scorers h3 { margin: 0 0 6px; font-size: 1rem; }
 .pv-scorers ul { margin: 0 0 16px; }
+
+/* Plantel compacto: pestañas por posición y fichas pequeñas */
+.pos-tabs{display:flex;width:100%;margin:.6rem 0}
+.pos-tabs button{flex:1;min-width:0;padding:8px 4px;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem}
+.pcard{padding:.5rem .55rem;gap:.25rem}
+.pc-photo{width:36px;height:36px;font-size:.9rem}
+.pc-name{font-size:.9rem}
+.pc-top .meta{font-size:.72rem}
+@media (max-width:420px){.pcards{grid-template-columns:repeat(2,1fr)}.pos-tabs button{font-size:.74rem}}
+
+/* Plantel en filas: una línea por jugador */
+.pcards,.pcards{grid-template-columns:1fr !important;gap:0 !important;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+@media (min-width:760px){.pcards{grid-template-columns:1fr 1fr !important}}
+.pcard{flex-direction:row;align-items:center;gap:.65rem;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:.45rem .65rem}
+.pcard.hurt{border-left:3px solid var(--loss)}
+.pc-id{flex:1;min-width:0}
+.pc-id .meta{font-size:.74rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-id .pc-hurt{font-size:.72rem}
+.pc-stats{display:flex;gap:.7rem;border:0;padding:0;flex:none}
+.pc-stats div{display:flex;flex-direction:column;align-items:center;min-width:1.5rem}
+.pc-stats strong{font-size:.98rem;line-height:1.1}
+.pc-stats span{font-size:.62rem;opacity:.65}
+.pc-none{font-size:.72rem;opacity:.6;flex:none}

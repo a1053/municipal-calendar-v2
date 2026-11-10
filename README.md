@@ -218,7 +218,7 @@ permite; si no, se descarga. Si un escudo no carga, se dibujan las iniciales. C�
 
 ## Plantel con fichas de jugador
 
-En Jugadores hay dos vistas: **Plantel** (fichas por posición con número o foto, edad, nacionalidad, lesión si ESPN la
+En Jugadores hay dos vistas: **Plantel** (pestañas por posición (Porteros, Defensas, Medios, Delanteros) con una fila por jugador: número o foto, edad, país, lesión si ESPN la
 reporta y PJ/goles/asistencias) y **Estadísticas** (la tabla). El selector de competencia también filtra las fichas.
 El plantel sale del roster de ESPN (`scripts/roster.py`, publicado como `data/roster.json`); si ESPN falla se conserva el
 último publicado (`stale`). Las estadísticas se cruzan con las de `players.json` por nombre.

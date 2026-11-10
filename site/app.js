@@ -8,7 +8,8 @@
   let data = { matches: null, standings: null, news: null, meta: null, players: null, roster: null };
   let newsFeed = "municipal";
   let showAllPlayers = false;
-  let playersView = "squad";   // "squad" (fichas del plantel) o "stats" (tabla)
+  let playersView = "squad";
+  let squadGroup = null;      // pestaña de posición abierta en el plantel   // "squad" (fichas del plantel) o "stats" (tabla)
   let playerComp = "all";
   let timer = null;
 
@@ -564,20 +565,17 @@
       img.addEventListener("error", () => { img.remove(); photo.textContent = r.jersey || initials(r.name); });
       photo.append(img);
     } else photo.textContent = r.jersey || initials(r.name);
-    const bits = [r.pos, r.age ? `${r.age} años` : ""].filter(Boolean).join(", ");
+    const bits = [r.age ? `${r.age} años` : "", r.country].filter(Boolean).join(", ");
     const played = st.pj || st.goals || st.assists;
-    const stat = (n, label) => el("div", null, el("strong", { text: n }), el("span", { text: label }));
+    const stat = (n, label) => el("div", { title: label }, el("strong", { text: n }), el("span", { text: label }));
     return el("li", { class: `pcard${r.injury ? " hurt" : ""}` },
-      el("div", { class: "pc-top" }, photo,
-        el("div", { class: "pc-id" },
-          el("strong", { class: "pc-name", text: r.name }),
-          bits ? el("span", { class: "meta", text: bits }) : null)),
-      r.country ? el("p", { class: "pc-country" },
-        r.flag && /^https?:/.test(r.flag) ? el("img", { src: r.flag, alt: "", loading: "lazy", referrerpolicy: "no-referrer", width: "18", height: "18" }) : null,
-        el("span", { text: r.country })) : null,
-      r.injury ? el("p", { class: "pc-hurt", text: `Lesión: ${r.injury}` }) : null,
-      played ? el("div", { class: "pc-stats" }, stat(st.pj, st.pj === 1 ? "partido" : "partidos"), stat(st.goals, st.goals === 1 ? "gol" : "goles"), stat(st.assists, st.assists === 1 ? "asistencia" : "asistencias"))
-        : el("p", { class: "pc-none", text: "Sin partidos registrados" }));
+      photo,
+      el("div", { class: "pc-id" },
+        el("strong", { class: "pc-name", text: r.name }),
+        el("span", { class: "meta", text: bits }),
+        r.injury ? el("span", { class: "pc-hurt", text: `Lesión: ${r.injury}` }) : null),
+      played ? el("div", { class: "pc-stats" }, stat(st.pj, "PJ"), stat(st.goals, "G"), stat(st.assists, "A"))
+        : el("span", { class: "pc-none", text: "Sin partidos" }));
   }
 
   function squadView(roster) {
@@ -594,13 +592,19 @@
       g.items.push(r);
     });
     groups.sort((a, b) => a.order - b.order);
+    if (!groups.some((g) => g.name === squadGroup)) squadGroup = groups.length ? groups[0].name : null;
     const stOf = (r) => (playerComp === "all" ? { ...ZERO_STATS, ...(r.stats || {}) } : { ...ZERO_STATS, ...((r.comps || {})[playerComp] || {}) });
     const scope = playerComp === "all" ? "todas las competencias" : compLabel(playerComp);
+    const cur = groups.find((g) => g.name === squadGroup);
+    const grid = el("ul", { class: "pcards" });
+    const show = () => grid.replaceChildren(...(cur ? cur.items.map((r) => playerCard(r, stOf(r))) : []));
+    show();
     return el("div", { class: "squad" },
       el("p", { class: "meta", text: `${facts.charAt(0).toUpperCase()}${facts.slice(1)}. Estadísticas de ${scope}.` }),
-      ...groups.map((g) => el("div", { class: "sq-group" },
-        el("h3", { text: `${g.name} (${g.items.length})` }),
-        el("ul", { class: "pcards" }, ...g.items.map((r) => playerCard(r, stOf(r)))))));
+      el("div", { class: "seg pos-tabs", role: "tablist", "aria-label": "Posición" },
+        ...groups.map((g) => el("button", { type: "button", role: "tab", "aria-selected": g.name === squadGroup ? "true" : "false", text: `${g.name === "Mediocampistas" ? "Medios" : g.name} ${g.items.length}`,
+          onclick: () => { squadGroup = g.name; renderPlayers(); } }))),
+      grid);
   }
 
   function renderPlayers() {
