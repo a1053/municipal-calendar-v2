@@ -216,3 +216,10 @@ En Jugadores hay dos vistas: **Plantel** (fichas por posición con número o fot
 reporta y PJ/goles/asistencias) y **Estadísticas** (la tabla). El selector de competencia también filtra las fichas.
 El plantel sale del roster de ESPN (`scripts/roster.py`, publicado como `data/roster.json`); si ESPN falla se conserva el
 último publicado (`stale`). Las estadísticas se cruzan con las de `players.json` por nombre.
+
+## Previa del partido ("Cómo llegan")
+
+En la página de un partido por jugar, arriba aparece la comparación de los dos equipos (`site/previa.js`): posición, puntos,
+puntos y goles por partido, diferencia de goles, últimos 5 partidos, goleadores de Municipal y el pronóstico. Solo usa datos
+que ya tiene el sitio. El que va mejor en cada dato se marca con una raya roja (con los valores redondeados que se ven, un
+empate no marca a nadie). En partidos que no son de liga solo aparecen lo que haya (forma y goleadores).

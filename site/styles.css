@@ -583,3 +583,20 @@ table.std { width: 100%; border-collapse: collapse; font-variant-numeric: tabula
 .pc-stats strong{display:block;font-size:1.05rem}
 .pc-stats span{font-size:.68rem;opacity:.7}
 .pc-none{margin:0;font-size:.78rem;opacity:.65}
+
+/* ===== Previa del partido ("Cómo llegan") ===== */
+.pv-head { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; margin: 4px 0 14px; }
+.pv-team { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-size: .95rem; }
+.pv-team .badge { width: 56px; height: 56px; background: var(--surface); }
+.pv-team strong.me { color: var(--rojo); }
+.pv-vs { font: 800 1.1rem/1 var(--font-display); color: var(--muted); }
+.pv-words { margin: 0 0 14px; }
+.pv-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr); align-items: center; gap: 0 8px; margin: 0 0 16px; }
+.pv-grid > * { padding: 9px 4px; border-bottom: 1px solid var(--line); }
+.pv-v { text-align: center; font: 700 1.25rem/1 var(--font-display); color: var(--muted); }
+.pv-v.best { color: var(--ink); }
+.pv-v.best::after { content: ""; display: block; width: 18px; height: 3px; margin: 5px auto 0; border-radius: 2px; background: var(--rojo); }
+.pv-l { text-align: center; font-size: .85rem; color: var(--muted); }
+.pv-form { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px; }
+.pv-scorers h3 { margin: 0 0 6px; font-size: 1rem; }
+.pv-scorers ul { margin: 0 0 16px; }
