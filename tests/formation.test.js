@@ -32,3 +32,8 @@ assert.strictEqual(mk2[3].marks, undefined);                      // la amarilla
 assert.strictEqual(F.withMarks({ ...lu, manual: true }, evs).players[0].marks, undefined);
 assert.strictEqual(F.withMarks(lu, []), lu);
 console.log("formation marks: OK");
+
+assert.ok(F.same("Aubrey Devid", "Aubrey David"));                 // error de tipeo en el apellido
+assert.ok(!F.same("Rudy Muñoz", "Rudy Nuñez"));                    // apellidos distintos
+assert.ok(!F.same("Luis Gómez", "Carlos Gómez"));
+console.log("formation typos: OK");
