@@ -70,6 +70,7 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(pen["sort"], 90.003)
         sub = next(e for e in ev if e["kind"] == "sub")
         self.assertEqual(sub["text"], "Entra José Martínez, sale Alejandro Cabeza")
+        self.assertEqual(sub["player_out"], "Alejandro Cabeza")
         self.assertEqual(len(ev), 5)  # el tipo desconocido se ignora
 
     def test_lineups(self):

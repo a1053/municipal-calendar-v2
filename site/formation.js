@@ -13,7 +13,19 @@
     if (ta.join(" ") === tb.join(" ")) return true;
     const shared = ta.filter((t) => t.length > 2 && tb.includes(t));
     if (ta[0] === tb[0] && shared.length >= 2) return true;
-    return ta[0][0] === tb[0][0] && ta[ta.length - 1] === tb[tb.length - 1];
+    if (ta[0][0] === tb[0][0] && ta[ta.length - 1] === tb[tb.length - 1]) return true;
+    // error de tipeo en un nombre ("Aubrey Devid" / "Aubrey David"): mismo primer nombre y apellido a una letra de distancia
+    const la = ta[ta.length - 1], lb = tb[tb.length - 1];
+    return ta[0] === tb[0] && la.length >= 4 && lb.length >= 4 && edits(la, lb) <= 1;
+  }
+
+  /** Distancia de edición entre dos palabras cortas. */
+  function edits(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
   }
 
   const LETTER = ["G", "D", "M", "F"];
@@ -38,7 +50,28 @@
     return { formation: `${count[1]}-${count[2]}-${count[3]}`, players: [...sorted, ...(players || []).filter((p) => !p.starter)] };
   }
 
-  const api = { estimate, same };
+  /** Marcas de cada jugador (goles, tarjetas, cambios) sacadas de los eventos del partido. Alineaciones a mano ya las traen. */
+  function withMarks(lineup, events) {
+    if (!lineup || lineup.manual || !(events || []).length) return lineup;
+    const evs = events.filter((e) => !e.team_id || !lineup.team_id || String(e.team_id) === String(lineup.team_id));
+    const is = (a, b) => a && b && (norm(a).join(" ") === norm(b).join(" ") || same(a, b));
+    const players = lineup.players.map((p) => {
+      const marks = [];
+      evs.forEach((e) => {
+        if (e.kind === "goal" && is(p.name, e.player)) marks.push("goal");
+        else if (e.kind === "yellow" && is(p.name, e.player)) marks.push("yellow");
+        else if (e.kind === "red" && is(p.name, e.player)) marks.push("red");
+        else if (e.kind === "sub") {
+          if (is(p.name, e.player)) marks.push("in");
+          if (is(p.name, e.player_out)) marks.push("out");
+        }
+      });
+      return marks.length ? { ...p, marks } : p;
+    });
+    return { ...lineup, players };
+  }
+
+  const api = { estimate, same, withMarks };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.MuniFormation = api;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -93,6 +93,7 @@ def parse_events(block: dict, ids: tuple[str, str], names: tuple[str, str]) -> l
             pout = (data.get("playerOut") or {}).get("name", "")
             row["kind"] = "sub"
             row["player"] = pin
+            row["player_out"] = pout
             row["text"] = f"Entra {pin}, sale {pout}".strip(", ") if pin or pout else ""
         else:
             continue

@@ -17,3 +17,23 @@ assert.ok(F.same("Rudy Barrientos", "Rudy Alexander Barrientos") && !F.same("Rud
 const bench = [...st(names), { name: "Suplente", starter: false }];
 assert.strictEqual(F.estimate(bench, roster).players.length, 12);
 console.log("formation.test.js: OK");
+
+// marcas desde los eventos
+const lu = { team_id: "7258", players: [
+  { name: "Elvi Elington Cayetano", starter: true }, { name: "Rudy Barrientos", starter: true }, { name: "Jefry Bantes", starter: false }, { name: "Otro Nombre", starter: true }] };
+const evs = [{ kind: "goal", player: "Elvi Elington", team_id: "7258" }, { kind: "goal", player: "Elvi Elington", team_id: "7258" },
+  { kind: "yellow", player: "Rudy Barrientos", team_id: "7258" }, { kind: "yellow", player: "Otro Nombre", team_id: "99" },
+  { kind: "sub", player: "Jefry Bantes", player_out: "Rudy Barrientos", team_id: "7258" }];
+const mk2 = F.withMarks(lu, evs).players;
+assert.deepStrictEqual(mk2[0].marks, ["goal", "goal"]);
+assert.deepStrictEqual(mk2[1].marks, ["yellow", "out"]);
+assert.deepStrictEqual(mk2[2].marks, ["in"]);
+assert.strictEqual(mk2[3].marks, undefined);                      // la amarilla era del otro equipo
+assert.strictEqual(F.withMarks({ ...lu, manual: true }, evs).players[0].marks, undefined);
+assert.strictEqual(F.withMarks(lu, []), lu);
+console.log("formation marks: OK");
+
+assert.ok(F.same("Aubrey Devid", "Aubrey David"));                 // error de tipeo en el apellido
+assert.ok(!F.same("Rudy Muñoz", "Rudy Nuñez"));                    // apellidos distintos
+assert.ok(!F.same("Luis Gómez", "Carlos Gómez"));
+console.log("formation typos: OK");
