@@ -1107,6 +1107,42 @@
     timer = setTimeout(async () => { await load(); if ($("home").hidden) route(); }, live ? 45e3 : 180e3);
   }
 
+  /** Barra de pestañas fija abajo (solo se ve en el celular): resalta la sección que se está viendo. */
+  function setupTabbar() {
+    const bar = document.querySelector(".tabbar");
+    if (!bar) return;
+    const btn = bar.querySelector(".tab-more"), menu = $("more-menu");
+    const close = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+    btn.addEventListener("click", () => { const open = menu.hidden; menu.hidden = !open; btn.setAttribute("aria-expanded", String(open)); });
+    menu.addEventListener("click", (e) => { if (e.target.closest("a")) close(); });
+    document.addEventListener("click", (e) => { if (!menu.hidden && !e.target.closest(".more-menu, .tab-more")) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+    window.addEventListener("hashchange", close);
+    const tabOf = { marcador: "marcador", partidos: "partidos", tabla: "tabla", liguilla: "liguilla" };
+    const ids = ["marcador", "liguilla", "partidos", "noticias", "tabla", "rendimiento", "jugadores", "redes"];
+    let pending = false;
+    const mark = () => {
+      pending = false;
+      let tab = null;
+      if (!$("home").hidden) {
+        let best = -Infinity;
+        for (const id of ids) {
+          const top = $(id).getBoundingClientRect().top;
+          if (top <= 140 && top > best) { best = top; tab = tabOf[id] || "more"; }
+        }
+        tab = tab || "marcador";
+      }
+      bar.querySelectorAll("[data-tab]").forEach((n) => {
+        if (n.dataset.tab === tab) n.setAttribute("aria-current", "true"); else n.removeAttribute("aria-current");
+      });
+    };
+    const queue = () => { if (!pending) { pending = true; requestAnimationFrame(mark); } };
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("hashchange", queue);
+    window.addEventListener("resize", queue);
+    mark();
+  }
+
   async function init() {
     try { config = await (await fetch("config.json", { cache: "no-store" })).json(); } catch (_) { config = {}; }
     config.team = config.team || "Municipal";
@@ -1119,6 +1155,7 @@
     await load();
     route();
     window.addEventListener("hashchange", route);
+    setupTabbar();
     setInterval(tickCountdown, 30e3);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
   }

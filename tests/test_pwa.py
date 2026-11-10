@@ -26,6 +26,18 @@ class PwaTests(unittest.TestCase):
         for js in re.findall(r'<script src="([^"]+)"', html):
             self.assertTrue((SITE / js).is_file(), js)
 
+    def test_tabbar_and_menu_point_to_real_sections(self):
+        html = (SITE / "index.html").read_text(encoding="utf-8")
+        ids = set(re.findall(r'\sid="([^"]+)"', html))
+        bar = re.search(r'<nav class="tabbar".*?</nav>', html, re.S).group(0)
+        menu = re.search(r'<div class="more-menu".*?</div>', html, re.S).group(0)
+        links = re.findall(r'href="#([^"/][^"]*)"', bar + menu)
+        self.assertGreaterEqual(len(links), 8)
+        for target in links:
+            self.assertIn(target, ids, target)
+        self.assertIn('href="#/calendario"', menu)
+        self.assertIn('aria-controls="more-menu"', bar)
+
     def test_service_worker_shell_exists(self):
         sw = (SITE / "sw.js").read_text(encoding="utf-8")
         shell = re.search(r"const SHELL = \[(.*?)\];", sw, re.S).group(1)

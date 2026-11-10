@@ -196,3 +196,9 @@ También se corrigió que el "Minuto a minuto" de ESPN se leía pero no se guard
 La tabla de Jugadores muestra por defecto el total de todas las competencias ("Todas"). Si hay partidos de más de una
 competencia, aparece un selector para ver solo la Liga Bantrab o cada copa. `players.json` guarda el total y el
 desglose por competencia (`comps`), y los dos siempre suman lo mismo.
+
+## Navegación en el celular
+
+En pantallas angostas (hasta 720 px) el menú de arriba se oculta y aparece una barra fija abajo con Inicio, Partidos,
+Tabla, Liguilla y "Más" (Jugadores, Noticias, Rendimiento, Redes y Calendario completo). La pestaña activa cambia sola
+según la sección que se está viendo. En computadora se mantiene el menú de arriba.
