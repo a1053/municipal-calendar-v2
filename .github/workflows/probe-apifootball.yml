@@ -11,4 +11,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 --version
-      - run: python3 scripts/fm_of_probe.py
+      - run: python3 scripts/pages_probe.py
