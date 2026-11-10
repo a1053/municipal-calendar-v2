@@ -938,6 +938,14 @@
       })));
   }
 
+  const MARK_TEXT = { yellow: "Tarjeta amarilla", red: "Tarjeta roja", goal: "Gol", out: "Salió", in: "Entró" };
+  function markIcons(marks, cls) {
+    if (!marks || !marks.length) return null;
+    return el("span", { class: cls, "aria-label": marks.map((k) => MARK_TEXT[k] || k).join(", ") },
+      ...marks.map((k) => el("i", { class: `mk mk-${k}`, title: MARK_TEXT[k] || k, "aria-hidden": "true",
+        text: k === "goal" ? "⚽" : k === "out" ? "▼" : k === "in" ? "▲" : "" })));
+  }
+
   function pitchView(lu, mine) {
     const P = window.MuniPitch;
     const rows = P && P.layout(lu.formation, lu.players);
@@ -951,7 +959,8 @@
       row.forEach((p, ci) => {
         const dot = el("div", { class: "pl", style: `left:${((ci + 0.5) / row.length) * 100}%;bottom:${bottom}%` },
           el("span", { class: "pl-dot", text: p.jersey || "" }),
-          el("span", { class: "pl-name", text: P.shortName(p.name) }));
+          el("span", { class: "pl-name", text: P.shortName(p.name) }),
+          markIcons(p.marks, "pl-marks"));
         pitch.append(dot);
       });
     });
@@ -968,7 +977,7 @@
         const est = window.MuniFormation.estimate(lu0.players, data.roster.players);
         if (est) { lu = { ...lu0, formation: est.formation, players: est.players }; estimated = true; }
       }
-      const li = (p) => el("li", null, el("span", { class: "jersey", text: p.jersey || "" }), el("span", { class: "pname", text: p.name }), p.pos ? el("span", { class: "ppos", text: p.pos }) : null);
+      const li = (p) => el("li", null, el("span", { class: "jersey", text: p.jersey || "" }), el("span", { class: "pname", text: p.name }), markIcons(p.marks, "li-marks"), p.pos ? el("span", { class: "ppos", text: p.pos }) : null);
       const bench = lu.players.filter((p) => !p.starter);
       const pitch = pitchView(lu, isMe({ id: lu.team_id, name: lu.team }));
       const starters = el("ul", { class: "plain" }, ...lu.players.filter((p) => p.starter).map(li));
@@ -977,7 +986,10 @@
         pitch,
         pitch && estimated ? el("p", { class: "meta", text: "Formación estimada con las posiciones del plantel; la real puede variar." }) : null,
         pitch ? el("details", null, el("summary", { text: "Ver la lista de titulares" }), starters) : starters,
-        bench.length ? el("details", null, el("summary", { text: `Suplentes (${bench.length})` }), el("ul", { class: "plain" }, ...bench.map(li))) : null);
+        bench.length ? (lu.manual ? el("div", null, el("h4", { text: "Banquillo" }), el("ul", { class: "plain" }, ...bench.map(li)))
+          : el("details", null, el("summary", { text: `Suplentes (${bench.length})` }), el("ul", { class: "plain" }, ...bench.map(li)))) : null,
+        lu.coach ? el("p", { class: "meta", text: `Entrenador: ${lu.coach}` }) : null,
+        lu.manual && lu.source ? el("p", { class: "meta", text: `Alineación cargada a mano. Fuente: ${lu.source}.` }) : null);
     })), of ? ofCredit(of) : null);
   }
 

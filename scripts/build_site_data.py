@@ -25,6 +25,7 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import manual_lineups
 import news_sources
 import onefootball as of_source  # noqa: E402
 import roster as roster_mod  # noqa: E402
@@ -333,6 +334,7 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
                 and cal._to_utc(m["start"]) > now), None)
     wanted = [m for m in matches if m.get("slug") and (m["state"] in ("in", "post") or m is nxt)]
     wanted = wanted[-MAX_DETAILS:]
+    manual = manual_lineups.load()
     (out_dir / "match").mkdir(parents=True, exist_ok=True)
     used, ok, failed = [], 0, 0
     for m in wanted:
@@ -354,7 +356,8 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
                 rival_events = {}
             rival = sd.build_rival(m, cal.TEAM_ID, standings, rival_events, matches, h2h)
         extra = (of_data or {}).get(m["id"])  # complemento de OneFootball (no toca lo de ESPN)
-        if not detail["has_data"] and not rival and not extra:
+        hand = manual_lineups.find(manual, m, cal._to_utc(m["start"]), cal.TEAM_ID) if manual else None
+        if not detail["has_data"] and not rival and not extra and not hand:
             continue
         ok += 1
         m["detail"] = True
@@ -368,6 +371,8 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
                    **{k: detail[k] for k in ("events", "commentary", "lineups", "stats")}}
         if extra:
             payload["of"] = extra
+        if hand:  # solo para mostrar: las estadísticas de jugadores no usan estos nombres cortos
+            payload["lineups"] = manual_lineups.apply(detail["lineups"], hand, m, cal.TEAM_ID)
         (out_dir / "match" / f"{m['id']}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     sources["details"] = "ok" if ok or not wanted else "error"

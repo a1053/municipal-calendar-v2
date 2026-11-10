@@ -1,0 +1,34 @@
+[
+  {
+    "date": "2026-10-28",
+    "rival": "Comunicaciones",
+    "competition": "Liga Nacional Apertura, jornada 17 (Municipal 3-1 Comunicaciones)",
+    "source": "Transfermarkt, copiado a mano",
+    "formation": "4-3-1-2",
+    "coach": "Mario Acevedo",
+    "starters": [
+      {"jersey": "1",  "name": "Linares", "pos": "POR"},
+      {"jersey": "16", "name": "Morales", "marks": ["out"]},
+      {"jersey": "3",  "name": "Mena"},
+      {"jersey": "4",  "name": "Samayoa", "marks": ["yellow"]},
+      {"jersey": "31", "name": "Calderón"},
+      {"jersey": "26", "name": "Barrientos", "marks": ["yellow", "out"]},
+      {"jersey": "14", "name": "Franco"},
+      {"jersey": "11", "name": "Méndez", "marks": ["out"]},
+      {"jersey": "10", "name": "Altán", "marks": ["out"]},
+      {"jersey": "32", "name": "López", "marks": ["out"]},
+      {"jersey": "9",  "name": "Martínez", "marks": ["yellow", "goal", "goal"]}
+    ],
+    "bench": [
+      {"jersey": "12", "name": "Kenderson Navarro", "pos": "POR"},
+      {"jersey": "52", "name": "Aubrey David", "pos": "CEN", "marks": ["in", "goal"]},
+      {"jersey": "13", "name": "Carlos Estrada", "pos": "CEN"},
+      {"jersey": "19", "name": "Cristian Hernández", "pos": "MCO", "marks": ["in"]},
+      {"jersey": "7",  "name": "Rudy Muñoz", "pos": "EI", "marks": ["in", "yellow"]},
+      {"jersey": "20", "name": "César Archila", "pos": "ED", "marks": ["in"]},
+      {"jersey": "99", "name": "Erick Japa", "pos": "ED"},
+      {"jersey": "22", "name": "Jefry Bantes", "pos": "DEL", "marks": ["in"]},
+      {"jersey": "33", "name": "Alejandro Cabeza", "pos": "DEL"}
+    ]
+  }
+]

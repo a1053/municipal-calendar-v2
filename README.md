@@ -235,3 +235,11 @@ empate no marca a nadie). En partidos que no son de liga solo aparecen lo que ha
 Cuando la alineación de Municipal no trae formación (OneFootball), la página cruza los 11 titulares con las posiciones
 del plantel de ESPN y cuenta defensas, medios y delanteros para dibujar la cancha (por ejemplo 4-4-2). Se marca como
 "estimada". Si un titular no se encuentra en el plantel, no se dibuja nada en vez de inventar. Código: `site/formation.js`.
+
+## Alineaciones cargadas a mano
+
+`data/lineups.json` permite escribir a mano la alineación de un partido cuando ninguna fuente automática trae la
+formación (por ejemplo, copiada de Transfermarkt). Cada entrada lleva `date` (día en Guatemala), `rival`, `formation`,
+los 11 `starters` en orden (portero, luego cada fila de izquierda a derecha, de la defensa al ataque) y el `bench`.
+Las `marks` (`yellow`, `red`, `goal`, `out`, `in`) aparecen en la cancha y en el banquillo. Solo se usa para mostrar;
+no entra en las estadísticas de jugadores. Ya incluye el Municipal 3-1 Comunicaciones de la jornada 17.
