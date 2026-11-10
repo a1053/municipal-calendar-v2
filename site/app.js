@@ -938,12 +938,12 @@
       })));
   }
 
-  const MARK_TEXT = { yellow: "Tarjeta amarilla", red: "Tarjeta roja", goal: "Gol", out: "Salió", in: "Entró" };
+  const MARK_TEXT = { yellow: "Tarjeta amarilla", red: "Tarjeta roja", goal: "Gol", out: "Salió", in: "Entró", captain: "Capitán" };
   function markIcons(marks, cls) {
     if (!marks || !marks.length) return null;
     return el("span", { class: cls, "aria-label": marks.map((k) => MARK_TEXT[k] || k).join(", ") },
       ...marks.map((k) => el("i", { class: `mk mk-${k}`, title: MARK_TEXT[k] || k, "aria-hidden": "true",
-        text: k === "goal" ? "⚽" : k === "out" ? "▼" : k === "in" ? "▲" : "" })));
+        text: k === "goal" ? "⚽" : k === "out" ? "▼" : k === "in" ? "▲" : k === "captain" ? "C" : "" })));
   }
 
   function pitchView(lu, mine) {

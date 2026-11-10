@@ -9,7 +9,7 @@
     "starters": [
       {"jersey": "1",  "name": "Linares", "pos": "POR"},
       {"jersey": "16", "name": "Morales", "marks": ["out"]},
-      {"jersey": "3",  "name": "Mena"},
+      {"jersey": "3",  "name": "Mena", "marks": ["captain"]},
       {"jersey": "4",  "name": "Samayoa", "marks": ["yellow"]},
       {"jersey": "31", "name": "Calderón"},
       {"jersey": "26", "name": "Barrientos", "marks": ["yellow", "out"]},
