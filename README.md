@@ -215,3 +215,10 @@ según la sección que se está viendo. En computadora se mantiene el menú de a
 El botón "Compartir imagen" de cada partido genera en el navegador una tarjeta vertical (1080x1920) con escudos,
 marcador y goleadores, o con fecha y hora si el partido no se ha jugado. Se comparte como archivo si el teléfono lo
 permite; si no, se descarga. Si un escudo no carga, se dibujan las iniciales. Código: `site/sharecard.js`.
+
+## Previa del partido ("Cómo llegan")
+
+En la página de un partido por jugar, arriba aparece la comparación de los dos equipos (`site/previa.js`): posición, puntos,
+puntos y goles por partido, diferencia de goles, últimos 5 partidos, goleadores de Municipal y el pronóstico. Solo usa datos
+que ya tiene el sitio. El que va mejor en cada dato se marca con una raya roja (con los valores redondeados que se ven, un
+empate no marca a nadie). En partidos que no son de liga solo aparecen lo que haya (forma y goleadores).
