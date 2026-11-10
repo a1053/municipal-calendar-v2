@@ -209,3 +209,10 @@ del partido, no se suma OneFootball, para no contar dos veces. OneFootball no tr
 En pantallas angostas (hasta 720 px) el menú de arriba se oculta y aparece una barra fija abajo con Inicio, Partidos,
 Tabla, Liguilla y "Más" (Jugadores, Noticias, Rendimiento, Redes y Calendario completo). La pestaña activa cambia sola
 según la sección que se está viendo. En computadora se mantiene el menú de arriba.
+
+## Previa del partido ("Cómo llegan")
+
+En la página de un partido por jugar, arriba aparece la comparación de los dos equipos (`site/previa.js`): posición, puntos,
+puntos y goles por partido, diferencia de goles, últimos 5 partidos, goleadores de Municipal y el pronóstico. Solo usa datos
+que ya tiene el sitio. El que va mejor en cada dato se marca con una raya roja (con los valores redondeados que se ven, un
+empate no marca a nadie). En partidos que no son de liga solo aparecen lo que haya (forma y goleadores).
