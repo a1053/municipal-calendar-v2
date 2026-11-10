@@ -7,28 +7,414 @@
     "formation": "4-3-1-2",
     "coach": "Mario Acevedo",
     "starters": [
-      {"jersey": "1",  "name": "Linares", "pos": "POR"},
-      {"jersey": "16", "name": "Morales", "marks": ["out"]},
-      {"jersey": "3",  "name": "Mena", "marks": ["captain"]},
-      {"jersey": "4",  "name": "Samayoa", "marks": ["yellow"]},
-      {"jersey": "31", "name": "Calderón"},
-      {"jersey": "26", "name": "Barrientos", "marks": ["yellow", "out"]},
-      {"jersey": "14", "name": "Franco"},
-      {"jersey": "11", "name": "Méndez", "marks": ["out"]},
-      {"jersey": "10", "name": "Altán", "marks": ["out"]},
-      {"jersey": "32", "name": "López", "marks": ["out"]},
-      {"jersey": "9",  "name": "Martínez", "marks": ["yellow", "goal", "goal"]}
+      {
+        "jersey": "1",
+        "name": "Linares",
+        "pos": "POR"
+      },
+      {
+        "jersey": "16",
+        "name": "Morales",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "3",
+        "name": "Mena",
+        "marks": [
+          "captain"
+        ]
+      },
+      {
+        "jersey": "4",
+        "name": "Samayoa",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "31",
+        "name": "Calderón"
+      },
+      {
+        "jersey": "26",
+        "name": "Barrientos",
+        "marks": [
+          "yellow",
+          "out"
+        ]
+      },
+      {
+        "jersey": "14",
+        "name": "Franco"
+      },
+      {
+        "jersey": "11",
+        "name": "Méndez",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "10",
+        "name": "Altán",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "32",
+        "name": "López",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "9",
+        "name": "Martínez",
+        "marks": [
+          "yellow",
+          "goal",
+          "goal"
+        ]
+      }
     ],
     "bench": [
-      {"jersey": "12", "name": "Kenderson Navarro", "pos": "POR"},
-      {"jersey": "52", "name": "Aubrey David", "pos": "CEN", "marks": ["in", "goal"]},
-      {"jersey": "13", "name": "Carlos Estrada", "pos": "CEN"},
-      {"jersey": "19", "name": "Cristian Hernández", "pos": "MCO", "marks": ["in"]},
-      {"jersey": "7",  "name": "Rudy Muñoz", "pos": "EI", "marks": ["in", "yellow"]},
-      {"jersey": "20", "name": "César Archila", "pos": "ED", "marks": ["in"]},
-      {"jersey": "99", "name": "Erick Japa", "pos": "ED"},
-      {"jersey": "22", "name": "Jefry Bantes", "pos": "DEL", "marks": ["in"]},
-      {"jersey": "33", "name": "Alejandro Cabeza", "pos": "DEL"}
+      {
+        "jersey": "12",
+        "name": "Kenderson Navarro",
+        "pos": "POR"
+      },
+      {
+        "jersey": "52",
+        "name": "Aubrey David",
+        "pos": "CEN",
+        "marks": [
+          "in",
+          "goal"
+        ]
+      },
+      {
+        "jersey": "13",
+        "name": "Carlos Estrada",
+        "pos": "CEN"
+      },
+      {
+        "jersey": "19",
+        "name": "Cristian Hernández",
+        "pos": "MCO",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "7",
+        "name": "Rudy Muñoz",
+        "pos": "EI",
+        "marks": [
+          "in",
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "20",
+        "name": "César Archila",
+        "pos": "ED",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "99",
+        "name": "Erick Japa",
+        "pos": "ED"
+      },
+      {
+        "jersey": "22",
+        "name": "Jefry Bantes",
+        "pos": "DEL",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "33",
+        "name": "Alejandro Cabeza",
+        "pos": "DEL"
+      }
+    ]
+  },
+  {
+    "date": "2026-10-24",
+    "rival": "Xelajú",
+    "competition": "Liga Nacional Apertura, jornada 16 (Xelajú 1-0 Municipal)",
+    "source": "Transfermarkt, copiado a mano",
+    "formation": "4-3-3",
+    "coach": "Mario Acevedo",
+    "starters": [
+      {
+        "jersey": "12",
+        "name": "Navarro"
+      },
+      {
+        "jersey": "16",
+        "name": "Morales"
+      },
+      {
+        "jersey": "13",
+        "name": "Estrada"
+      },
+      {
+        "jersey": "3",
+        "name": "Mena",
+        "marks": [
+          "captain"
+        ]
+      },
+      {
+        "jersey": "31",
+        "name": "Calderón"
+      },
+      {
+        "jersey": "19",
+        "name": "Hernández",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "43",
+        "name": "Pérez",
+        "marks": [
+          "yellow",
+          "out"
+        ]
+      },
+      {
+        "jersey": "8",
+        "name": "Saravia",
+        "marks": [
+          "red"
+        ]
+      },
+      {
+        "jersey": "17",
+        "name": "Elington",
+        "marks": [
+          "yellow",
+          "out"
+        ]
+      },
+      {
+        "jersey": "9",
+        "name": "Martínez",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "11",
+        "name": "Méndez",
+        "marks": [
+          "out"
+        ]
+      }
+    ],
+    "bench": [
+      {
+        "jersey": "1",
+        "name": "Braulio Linares",
+        "pos": "POR"
+      },
+      {
+        "jersey": "52",
+        "name": "Aubrey David",
+        "pos": "CEN"
+      },
+      {
+        "jersey": "23",
+        "name": "Carlos Aguilar",
+        "pos": "LI"
+      },
+      {
+        "jersey": "26",
+        "name": "Rudy Barrientos",
+        "pos": "MC"
+      },
+      {
+        "jersey": "10",
+        "name": "Pedro Altán",
+        "pos": "MCO",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "99",
+        "name": "Erick Japa",
+        "pos": "ED",
+        "marks": [
+          "in",
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "32",
+        "name": "Erik López",
+        "pos": "MP",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "22",
+        "name": "Jefry Bantes",
+        "pos": "DEL",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "33",
+        "name": "Alejandro Cabeza",
+        "pos": "DEL",
+        "marks": [
+          "in"
+        ]
+      }
+    ],
+    "rival_formation": "4-2-3-1",
+    "rival_coach": "Roberto Hernández",
+    "rival_starters": [
+      {
+        "jersey": "1",
+        "name": "Silva",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "12",
+        "name": "González",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "5",
+        "name": "Monreal"
+      },
+      {
+        "jersey": "25",
+        "name": "Ruiz"
+      },
+      {
+        "jersey": "23",
+        "name": "Calderón"
+      },
+      {
+        "jersey": "6",
+        "name": "de León",
+        "marks": [
+          "captain",
+          "out"
+        ]
+      },
+      {
+        "jersey": "10",
+        "name": "López",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "77",
+        "name": "Jaén",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "26",
+        "name": "Cardoza"
+      },
+      {
+        "jersey": "30",
+        "name": "de León",
+        "marks": [
+          "yellow",
+          "out"
+        ]
+      },
+      {
+        "jersey": "9",
+        "name": "Casas",
+        "marks": [
+          "goal",
+          "red"
+        ]
+      }
+    ],
+    "rival_bench": [
+      {
+        "jersey": "98",
+        "name": "Estuardo Sicán",
+        "pos": "POR"
+      },
+      {
+        "jersey": "18",
+        "name": "José Castañeda",
+        "pos": "CEN",
+        "marks": [
+          "in",
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "4",
+        "name": "Marcelo Hernández",
+        "pos": "CEN"
+      },
+      {
+        "jersey": "14",
+        "name": "Javier González",
+        "pos": "LD"
+      },
+      {
+        "jersey": "34",
+        "name": "Ricardo Márquez",
+        "pos": "MC"
+      },
+      {
+        "jersey": "24",
+        "name": "Justin Racancoj",
+        "pos": "MCO",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "71",
+        "name": "Óscar Mejía",
+        "pos": "EI"
+      },
+      {
+        "jersey": "7",
+        "name": "Yilton Díaz",
+        "pos": "ED",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "20",
+        "name": "Harim Quezada",
+        "pos": "DEL",
+        "marks": [
+          "in"
+        ]
+      }
     ]
   }
 ]

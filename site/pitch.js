@@ -25,7 +25,7 @@
     if (parts.length <= 1) return parts[0] || "";
     const small = /^(de|del|la|las|los|da|do|dos|van|von|di|le)$/i;
     let last = parts[parts.length - 1], k = parts.length - 2;
-    while (k > 0 && small.test(parts[k])) { last = `${parts[k]} ${last}`; k--; }
+    while (k >= 0 && small.test(parts[k])) { last = `${parts[k]} ${last}`; k--; }
     return last;
   }
 

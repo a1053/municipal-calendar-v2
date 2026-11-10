@@ -34,3 +34,6 @@ assert.strictEqual(P.shortName("Nelson de la Cruz"), "de la Cruz");
 assert.strictEqual(P.shortName("Pelé"), "Pelé");
 assert.strictEqual(P.shortName(""), "");
 console.log("pitch.test.js: OK");
+assert.strictEqual(P.shortName("de León"), "de León");            // apellido compuesto sin nombre de pila
+assert.strictEqual(P.shortName("Juan de la Cruz"), "de la Cruz");
+console.log("pitch shortName apellidos: OK");
