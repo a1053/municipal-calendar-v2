@@ -39,25 +39,26 @@ def find(entries: list[dict], match: dict, start_utc, team_id: str) -> dict | No
     return None
 
 
-def official_names(official: list[dict], team_id: str) -> dict[str, dict]:
-    """Camiseta -> jugador de la alineación oficial (ESPN, y si no OneFootball) de ese equipo. Sin camisetas repetidas."""
-    seen: dict[str, list[dict]] = {}
-    for lu in official or []:
-        if str(lu.get("team_id")) != str(team_id):
-            continue
-        for p in lu.get("players") or []:
-            j = str(p.get("jersey") or "").strip()
-            if j and j != "-":
-                seen.setdefault(j, []).append(p)
-    return {j: ps[0] for j, ps in seen.items() if len(ps) == 1 and ps[0].get("name")}
+def official_players(official: list[dict], team_id: str) -> list[dict]:
+    """Jugadores (titulares y suplentes) de la alineación oficial de ESPN u OneFootball para ese equipo."""
+    return [p for lu in official or [] if str(lu.get("team_id")) == str(team_id) for p in lu.get("players") or [] if p.get("name")]
 
 
-def to_lineup(entry: dict, team_id: str, team: str, home_away: str, prefix: str = "", names: dict | None = None) -> dict:
-    names = names or {}
+def official_name(hand: dict, players: list[dict]) -> dict | None:
+    """El jugador oficial que corresponde a uno escrito a mano. Los números de camiseta de ESPN/OneFootball no siempre
+    coinciden con los de la captura, así que primero debe parecerse el nombre; la camiseta solo desempata."""
+    cands = [p for p in players if _same_person(hand.get("name", ""), p["name"])]
+    jersey = str(hand.get("jersey", "")).strip()
+    by_num = [p for p in cands if str(p.get("jersey") or "").strip() == jersey]
+    if len(by_num) == 1:
+        return by_num[0]
+    return cands[0] if len(cands) == 1 else None
 
+
+def to_lineup(entry: dict, team_id: str, team: str, home_away: str, prefix: str = "", names: list[dict] | None = None) -> dict:
     def who(p: dict) -> dict:
-        """Nombre completo de ESPN/OneFootball según la camiseta; si no hay, lo escrito a mano."""
-        off = names.get(str(p.get("jersey", "")).strip())
+        """Nombre completo de ESPN/OneFootball si se reconoce al jugador; si no, lo escrito a mano."""
+        off = official_name(p, names or [])
         return {"name": off["name"] if off else p["name"], "id": (off or {}).get("id", "")}
 
     players = []
@@ -77,11 +78,11 @@ def apply(lineups: list[dict], entry: dict, match: dict, team_id: str, official:
     mine = match["home"] if match["home"]["id"] == team_id else match["away"]
     ha = "home" if mine is match["home"] else "away"
     other = match["away"] if mine is match["home"] else match["home"]
-    out = [lu for lu in lineups if lu.get("team_id") != team_id] + [to_lineup(entry, team_id, mine["name"], ha, names=official_names(official, team_id))]
+    out = [lu for lu in lineups if lu.get("team_id") != team_id] + [to_lineup(entry, team_id, mine["name"], ha, names=official_players(official, team_id))]
     if len(entry.get("rival_starters") or []) == 11:      # la alineación del rival, si también se cargó
         out = [lu for lu in out if lu.get("team_id") != other["id"]] + [
             to_lineup(entry, other["id"], other["name"], "away" if ha == "home" else "home", "rival_",
-                      official_names(official, other["id"]))]
+                      official_players(official, other["id"]))]
     return out
 
 
