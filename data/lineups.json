@@ -820,5 +820,280 @@
         "text": "Derribar a un adversario en una ocasión"
       }
     ]
+  },
+  {
+    "date": "2026-10-15",
+    "rival": "Cobán",
+    "competition": "Liga Nacional Apertura, jornada 14 (Cobán Imperial 2-1 Municipal)",
+    "source": "Transfermarkt, copiado a mano",
+    "formation": "4-3-3",
+    "coach": "Mario Acevedo",
+    "starters": [
+      {
+        "jersey": "12",
+        "name": "Kenderson Navarro"
+      },
+      {
+        "jersey": "16",
+        "name": "Morales"
+      },
+      {
+        "jersey": "52",
+        "name": "Aubrey David"
+      },
+      {
+        "jersey": "4",
+        "name": "Samayoa",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "31",
+        "name": "César Calderón"
+      },
+      {
+        "jersey": "19",
+        "name": "Cristian Hernández",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "14",
+        "name": "Jonathan Franco"
+      },
+      {
+        "jersey": "26",
+        "name": "Rudy Barrientos"
+      },
+      {
+        "jersey": "17",
+        "name": "Elvi Elington"
+      },
+      {
+        "jersey": "22",
+        "name": "Jefry Bantes",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "11",
+        "name": "Jhon Méndez",
+        "marks": [
+          "captain"
+        ]
+      }
+    ],
+    "bench": [
+      {
+        "jersey": "1",
+        "name": "Braulio Linares",
+        "pos": "POR"
+      },
+      {
+        "jersey": "13",
+        "name": "Carlos Estrada",
+        "pos": "CEN"
+      },
+      {
+        "jersey": "8",
+        "name": "Rodrigo Saravia",
+        "pos": "PIV"
+      },
+      {
+        "jersey": "43",
+        "name": "Yunior Pérez",
+        "pos": "PIV",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "10",
+        "name": "Pedro Altán",
+        "pos": "MCO",
+        "marks": [
+          "in",
+          "goal"
+        ]
+      },
+      {
+        "jersey": "7",
+        "name": "Rudy Muñoz",
+        "pos": "EI",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "32",
+        "name": "Erik López",
+        "pos": "MP",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "33",
+        "name": "Alejandro Cabeza",
+        "pos": "DEL"
+      },
+      {
+        "jersey": "9",
+        "name": "José Carlos Martínez",
+        "pos": "DEL",
+        "marks": [
+          "in"
+        ]
+      }
+    ],
+    "rival_formation": "4-2-3-1",
+    "rival_coach": "Ramiro Cepeda",
+    "rival_starters": [
+      {
+        "jersey": "55",
+        "name": "Casas"
+      },
+      {
+        "jersey": "30",
+        "name": "Soto"
+      },
+      {
+        "jersey": "22",
+        "name": "Aldana"
+      },
+      {
+        "jersey": "5",
+        "name": "Teni",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "17",
+        "name": "Cabrera",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "21",
+        "name": "Leal"
+      },
+      {
+        "jersey": "14",
+        "name": "de León"
+      },
+      {
+        "jersey": "77",
+        "name": "Winter"
+      },
+      {
+        "jersey": "18",
+        "name": "Rosas"
+      },
+      {
+        "jersey": "-",
+        "name": "Ical",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "11",
+        "name": "Moreira"
+      }
+    ],
+    "rival_bench": [
+      {
+        "jersey": "1",
+        "name": "Javier Romero",
+        "pos": "POR"
+      },
+      {
+        "jersey": "6",
+        "name": "Carlos Winter",
+        "pos": "CEN"
+      },
+      {
+        "jersey": "32",
+        "name": "Julio Sandoval",
+        "pos": "PIV"
+      },
+      {
+        "jersey": "80",
+        "name": "William Amaya",
+        "pos": "PIV",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "19",
+        "name": "Kenneth Valdez",
+        "pos": "MC",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "8",
+        "name": "Yeltsin Álvarez",
+        "pos": "MC",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "20",
+        "name": "Steven Paredes",
+        "pos": "MCO",
+        "marks": [
+          "in",
+          "goal"
+        ]
+      },
+      {
+        "jersey": "25",
+        "name": "Uri Amaral",
+        "pos": "DEL",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "10",
+        "name": "Brian Calabrese",
+        "pos": "DEL"
+      }
+    ],
+    "events": [
+      {
+        "min": "45'+2",
+        "side": "rival",
+        "kind": "goal",
+        "player": "Michael Moreira",
+        "assist": "Ángel Cabrera",
+        "text": "Remate de cabeza"
+      },
+      {
+        "min": "82'",
+        "side": "rival",
+        "kind": "goal",
+        "player": "Steven Paredes",
+        "assist": "Yeltsin Álvarez",
+        "text": "Gol a la contra"
+      },
+      {
+        "min": "90'+7",
+        "side": "me",
+        "kind": "goal",
+        "player": "Pedro Altán",
+        "assist": "Yunior Pérez",
+        "text": "Tiro con la izquierda"
+      }
+    ]
   }
 ]
