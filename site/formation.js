@@ -54,23 +54,29 @@
   function withMarks(lineup, events) {
     if (!lineup || !(events || []).length) return lineup;
     const evs = events.filter((e) => !e.team_id || !lineup.team_id || String(e.team_id) === String(lineup.team_id));
-    const is = (a, b) => a && b && (norm(a).join(" ") === norm(b).join(" ") || same(a, b));
+    const surname = (n) => norm(n).slice(-1)[0] || "";
+    const bySurname = {};
+    lineup.players.forEach((p) => { const k = surname(p.name); bySurname[k] = (bySurname[k] || 0) + 1; });
+    // Mismo jugador: nombre parecido, o el mismo apellido cuando es único en la alineación ("E Ávalos" / "Víctor Avalos").
+    const is = (p, name) => {
+      if (!name) return false;
+      if (norm(p.name).join(" ") === norm(name).join(" ") || same(p.name, name)) return true;
+      const k = surname(name);
+      return k.length > 3 && k === surname(p.name) && bySurname[k] === 1;
+    };
     const EVENT_MARKS = ["goal", "yellow", "red", "in", "out"];
+    // ESPN y OneFootball son la fuente oficial: las marcas de eventos salen solo de ahí. De lo manual queda el capitán.
     const players = lineup.players.map((p) => {
-      const found = [];
+      const marks = (p.marks || []).filter((k) => !EVENT_MARKS.includes(k));
       evs.forEach((e) => {
-        if (e.kind === "goal" && is(p.name, e.player)) found.push("goal");
-        else if (e.kind === "yellow" && is(p.name, e.player)) found.push("yellow");
-        else if (e.kind === "red" && is(p.name, e.player)) found.push("red");
+        if (e.kind === "goal" && is(p, e.player)) marks.push("goal");
+        else if (e.kind === "yellow" && is(p, e.player)) marks.push("yellow");
+        else if (e.kind === "red" && is(p, e.player)) marks.push("red");
         else if (e.kind === "sub") {
-          if (is(p.name, e.player)) found.push("in");
-          if (is(p.name, e.player_out)) found.push("out");
+          if (is(p, e.player)) marks.push("in");
+          if (is(p, e.player_out)) marks.push("out");
         }
       });
-      // Por cada tipo, los eventos mandan; si no encontraron ese tipo para el jugador, queda lo cargado a mano (y el capitán).
-      const hand = p.marks || [];
-      const marks = hand.filter((k) => !EVENT_MARKS.includes(k) || !found.includes(k));
-      EVENT_MARKS.forEach((k) => found.forEach((f) => { if (f === k) marks.push(k); }));
       return marks.length || p.marks ? { ...p, marks } : p;
     });
     return { ...lineup, players };

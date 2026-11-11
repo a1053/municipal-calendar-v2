@@ -318,5 +318,13 @@ class BuildDetailsTests(unittest.TestCase):
             self.assertEqual(nxt["rival"]["meetings"][0]["score"], "2-1")
 
 
+
+class SubOutTests(unittest.TestCase):
+    def test_sub_out_from_espn_text(self):
+        self.assertEqual(sd._sub_out("Substitution, Municipal. Jefry Bantes replaces Erik López."), "Erik López")
+        self.assertEqual(sd._sub_out("Substitution, X. A B replaces C D because of an injury."), "C D")
+        self.assertEqual(sd._sub_out("Algo raro"), "")
+
+
 if __name__ == "__main__":
     unittest.main()
