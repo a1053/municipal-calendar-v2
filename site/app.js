@@ -954,6 +954,20 @@
         text: k === "goal" ? "⚽" : k === "out" ? "▼" : k === "in" ? "▲" : k === "captain" ? "C" : "" })));
   }
 
+  // Insignias pegadas al círculo del jugador: tarjeta arriba a la derecha, cambio arriba a la izquierda,
+  // gol abajo a la derecha (con ×n si fueron varios) y capitán abajo a la izquierda.
+  function discBadges(marks) {
+    const count = {};
+    (marks || []).forEach((k) => { count[k] = (count[k] || 0) + 1; });
+    const out = [];
+    const add = (k, text, n) => out.push(el("i", { class: `bd bd-${k}`, title: MARK_TEXT[k] || k, "aria-hidden": "true", text: n > 1 ? `${text}${n}` : text }));
+    if (count.red) add("red", "", 1); else if (count.yellow) add("yellow", "", 1);
+    if (count.out) add("out", "▼", 1); else if (count.in) add("in", "▲", 1);
+    if (count.goal) add("goal", "⚽", count.goal);
+    if (count.captain) add("captain", "C", 1);
+    return out;
+  }
+
   function pitchView(lu, mine) {
     const P = window.MuniPitch;
     const rows = P && P.layout(lu.formation, lu.players);
@@ -966,9 +980,8 @@
       const bottom = 8 + ri * (84 / (n - 1));
       row.forEach((p, ci) => {
         const dot = el("div", { class: "pl", style: `left:${((ci + 0.5) / row.length) * 100}%;bottom:${bottom}%` },
-          el("span", { class: "pl-dot", text: p.jersey || "" }),
-          el("span", { class: "pl-name", text: P.shortName(p.name) }),
-          markIcons(p.marks, "pl-marks"));
+          el("span", { class: "pl-disc" }, el("span", { class: "pl-dot", text: p.jersey || "" }), ...discBadges(p.marks)),
+          el("span", { class: "pl-name", text: P.shortName(p.name) }));
         pitch.append(dot);
       });
     });
