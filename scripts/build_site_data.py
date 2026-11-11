@@ -372,7 +372,10 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
         if extra:
             payload["of"] = extra
         if hand:  # solo para mostrar: las estadísticas de jugadores no usan estos nombres cortos
-            payload["lineups"] = manual_lineups.apply(detail["lineups"], hand, m, cal.TEAM_ID)
+            # Nombres completos: los de ESPN u OneFootball según la camiseta; la captura aporta formación, posiciones y banquillo.
+            official = detail["lineups"] + [lu for lu in ((extra or {}).get("lineups") or [])
+                                            if not any(str(x.get("team_id")) == str(lu.get("team_id")) for x in detail["lineups"])]
+            payload["lineups"] = manual_lineups.apply(detail["lineups"], hand, m, cal.TEAM_ID, official)
             if hand.get("events"):
                 # ESPN y OneFootball son los oficiales: manda la lista con más eventos (empate: ESPN).
                 espn_ev, of_ev = detail.get("events") or [], (extra or {}).get("events") or []
