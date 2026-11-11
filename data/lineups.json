@@ -573,7 +573,6 @@
         "name": "Emanuel Yori",
         "marks": [
           "captain",
-          "goal",
           "yellow"
         ]
       },
@@ -581,6 +580,7 @@
         "jersey": "88",
         "name": "Carlos Alvarado",
         "marks": [
+          "goal",
           "yellow",
           "out"
         ]
@@ -707,10 +707,10 @@
         "text": "Derribar a un adversario en una ocasión"
       },
       {
-        "min": "34'",
+        "min": "35'",
         "side": "rival",
         "kind": "goal",
-        "player": "Emanuel Yori",
+        "player": "Carlos Alvarado",
         "assist": "Bryan Lemus",
         "text": "Remate de cabeza"
       },
