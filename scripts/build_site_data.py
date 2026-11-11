@@ -374,10 +374,13 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
         if hand:  # solo para mostrar: las estadísticas de jugadores no usan estos nombres cortos
             payload["lineups"] = manual_lineups.apply(detail["lineups"], hand, m, cal.TEAM_ID)
             if hand.get("events"):
-                of_events = (extra or {}).get("events") or []
+                # ESPN y OneFootball son los oficiales: manda la lista con más eventos (empate: ESPN).
+                espn_ev, of_ev = detail.get("events") or [], (extra or {}).get("events") or []
+                base = of_ev if len(of_ev) > len(espn_ev) else espn_ev
+                label = "OneFootball" if base is of_ev and of_ev else "ESPN"
                 payload["manual"] = {
-                    "source": ("OneFootball, con asistencias y motivos de " if of_events else "") + hand.get("source", ""),
-                    "events": manual_lineups.merge_events(of_events, manual_lineups.to_events(hand, m, cal.TEAM_ID))}
+                    "source": (f"{label}, con asistencias y motivos de " if base else "") + hand.get("source", ""),
+                    "events": manual_lineups.merge_events(base, manual_lineups.to_events(hand, m, cal.TEAM_ID))}
         (out_dir / "match" / f"{m['id']}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     sources["details"] = "ok" if ok or not wanted else "error"

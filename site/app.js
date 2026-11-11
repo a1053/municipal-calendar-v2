@@ -988,6 +988,12 @@
     return pitch;
   }
 
+  // Eventos oficiales para las marcas del dibujo: ESPN u OneFootball, el que traiga más (empate: ESPN).
+  function officialEvents(detail) {
+    const a = (detail && detail.events) || [], b = (detail && detail.of && detail.of.events) || [];
+    return b.length > a.length ? b : a;
+  }
+
   function lineupsBlock(m, lineups, of, events) {
     if (!lineups.length) return null;
     const ordered = [...lineups].sort((a, b) => (a.team_id === m.home.id ? -1 : 1) - (b.team_id === m.home.id ? -1 : 1));
@@ -1041,7 +1047,7 @@
       detail.manual ? null : ofEventsBlock(m, detail.of, detail.events),
       commentaryBlock(m, detail.commentary),
       statsBlock(m, detail.stats || []),
-      (detail.lineups || []).length ? lineupsBlock(m, detail.lineups, null, detail.events) : lineupsBlock(m, (detail.of && detail.of.lineups) || [], detail.of, (detail.of && detail.of.events) || []),
+      (detail.lineups || []).length ? lineupsBlock(m, detail.lineups, null, officialEvents(detail)) : lineupsBlock(m, (detail.of && detail.of.lineups) || [], detail.of, officialEvents(detail)),
     ].filter(Boolean) : [];
     if (prev) parts.unshift(prev);
     else { const fcard = forecastCard(m); if (fcard) parts.unshift(fcard); }

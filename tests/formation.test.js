@@ -37,13 +37,15 @@ assert.ok(!F.same("Rudy Muñoz", "Rudy Nuñez"));                    // apellido
 assert.ok(!F.same("Luis Gómez", "Carlos Gómez"));
 console.log("formation typos: OK");
 
-// alineación manual: los eventos mandan por tipo, y lo escrito a mano queda de respaldo
+// alineación manual: ESPN y OneFootball mandan; lo manual solo aporta el capitán
 const man = { team_id: "7258", manual: true, players: [
-  { name: "Mena", starter: true, marks: ["captain", "yellow"] }, { name: "Víctor Avalos", starter: true, marks: ["out"] }, { name: "Jhon Méndez", starter: false, marks: ["in"] }] };
-const out2 = F.withMarks(man, [{ kind: "sub", player: "Jhon Méndez", player_out: "Rudy Muñoz", team_id: "7258" }]).players;
-assert.deepStrictEqual(out2[0].marks, ["captain", "yellow"]);       // sin evento de ese tipo, se queda lo manual
-assert.deepStrictEqual(out2[1].marks, ["out"]);
+  { name: "Mena", starter: true, marks: ["captain", "yellow"] }, { name: "Víctor Avalos", starter: true, marks: ["out"] },
+  { name: "Jhon Méndez", starter: false, marks: ["in"] }, { name: "Carlos Alvarado", starter: true }, { name: "Emanuel Yori", starter: true, marks: ["goal"] }] };
+const out2 = F.withMarks(man, [{ kind: "sub", player: "John Méndez", player_out: "E Ávalos", team_id: "7258" }, { kind: "goal", player: "Carlos Alvarado", team_id: "7258" }]).players;
+assert.deepStrictEqual(out2[0].marks, ["captain"]);                 // la amarilla manual no cuenta si ESPN/OneFootball no la traen
+assert.deepStrictEqual(out2[1].marks, ["out"]);                     // por apellido único
 assert.deepStrictEqual(out2[2].marks, ["in"]);
-const out3 = F.withMarks({ ...man, players: [{ name: "Jhon Méndez", marks: ["in", "yellow"] }] }, [{ kind: "yellow", player: "Jhon Méndez", team_id: "7258" }]).players;
-assert.deepStrictEqual(out3[0].marks, ["in", "yellow"]);
+assert.deepStrictEqual(out2[3].marks, ["goal"]);
+assert.deepStrictEqual(out2[4].marks, []);                          // Yori no marcó: la marca manual se descarta
+assert.strictEqual(F.withMarks(man, []), man);                      // sin eventos, queda lo manual
 console.log("formation manual marks: OK");

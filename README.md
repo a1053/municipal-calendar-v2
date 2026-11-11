@@ -254,6 +254,7 @@ Las entradas de `data/lineups.json` también pueden traer `events` (cronología 
 goal, yellow, red o sub, `player`, `player_out`, `assist` y `text`). Si existen, mandan sobre la cronología de ESPN y
 OneFootball y muestran asistencias. Ya incluye Municipal 1-1 Guastatoya, jornada 15.
 
-Cuando un partido tiene alineación manual y también eventos de OneFootball, la cronología y las marcas de la cancha salen
-de OneFootball. De lo cargado a mano se toman las asistencias, los motivos de las tarjetas, el capitán y las marcas que
-OneFootball no trae. Si OneFootball no tiene eventos, se usa la cronología cargada a mano.
+ESPN y OneFootball son la fuente oficial de los eventos: la cronología y las marcas de la cancha (goles, tarjetas,
+entró, salió) salen de la lista que traiga más eventos (empate: ESPN). De lo cargado a mano se toman la formación, las
+posiciones, el banquillo, el entrenador, el capitán, las asistencias y los motivos de las tarjetas. Si ninguna fuente
+tiene eventos de un partido, se usa lo escrito a mano.

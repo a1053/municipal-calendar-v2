@@ -69,6 +69,12 @@ def _athlete(p: dict) -> dict:
     return {"id": str(a.get("id", "")), "name": a.get("displayName") or a.get("fullName") or ""}
 
 
+def _sub_out(text: str) -> str:
+    """"Substitution, Municipal. Jefry Bantes replaces Erik López." -> "Erik López" (vacío si no se reconoce)."""
+    m = re.search(r"\breplaces\s+(.+?)(?:\s+(?:because|due)\b.*|\.)?\s*$", text or "")
+    return m.group(1).strip().rstrip(".") if m else ""
+
+
 def parse_events(obj: dict) -> list[dict]:
     out = []
     for ev in (obj or {}).get("keyEvents") or []:
@@ -88,6 +94,7 @@ def parse_events(obj: dict) -> list[dict]:
             "player_id": parts[0]["id"] if parts else "",
             "assist": parts[1]["name"] if kind == "goal" and len(parts) > 1 else "",
             "text": (ev.get("text") or ev.get("shortText") or "") if kind == "sub" else "",
+            "player_out": _sub_out(ev.get("text") or "") if kind == "sub" else "",
         })
     out.sort(key=lambda e: e["sort"])
     return out
