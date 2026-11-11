@@ -260,6 +260,6 @@ posiciones, el banquillo, el entrenador, el capitán, las asistencias y los moti
 tiene eventos de un partido, se usa lo escrito a mano.
 
 Los nombres de los titulares (y del banquillo, cuando ESPN lo trae) se toman de la alineación oficial de ESPN u
-OneFootball, emparejando por número de camiseta. En `data/lineups.json` basta el número y el lugar en la cancha; el
+OneFootball, reconociendo al jugador por el nombre (la camiseta solo desempata, porque los números de las fuentes no siempre coinciden). En `data/lineups.json` se escribe el apellido y el lugar en la cancha; el
 nombre escrito a mano solo se usa si la fuente oficial no tiene a ese jugador. De las capturas se necesita
 principalmente la formación, las posiciones y los suplentes.

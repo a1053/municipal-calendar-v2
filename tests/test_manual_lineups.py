@@ -71,14 +71,19 @@ class ManualLineupsTests(unittest.TestCase):
         self.assertEqual(len(out), 2)                                   # lo que solo está a mano no entra
         self.assertEqual(ml.merge_events([], manual), manual)           # sin OneFootball, vale lo manual
 
-    def test_names_come_from_official_lineup_by_jersey(self):
-        official = [{"team_id": "9", "players": [{"name": "Juan Winter", "jersey": "77", "id": "5"}, {"name": "Otro", "jersey": "5"}, {"name": "Doble", "jersey": "5"}]}]
-        entry = {**ENTRY, "rival_starters": [{"jersey": "77", "name": "Winter"}] + [{"jersey": str(i), "name": f"R{i}"} for i in range(5, 15)]}
+    def test_names_come_from_official_lineup(self):
+        official = [{"team_id": "9", "players": [
+            {"name": "Juan Winter", "jersey": "77", "id": "5"}, {"name": "Carlos Winter", "jersey": "6"}, {"name": "Jefry Bantes", "jersey": "11"},
+            {"name": "Jhon Méndez", "jersey": "9"}]}]
+        rs = [{"jersey": "77", "name": "Winter"}, {"jersey": "11", "name": "Méndez"}, {"jersey": "22", "name": "Bantes"}] + [{"jersey": str(i), "name": f"R{i}"} for i in range(30, 38)]
+        entry = {**ENTRY, "rival_starters": rs}
         out = {lu["team_id"]: lu for lu in ml.apply([], entry, M, "7258", official)}
         names = [p["name"] for p in out["9"]["players"]]
-        self.assertEqual(names[0], "Juan Winter")                        # camiseta 77: nombre de OneFootball
-        self.assertIn("R5", names)                                       # camiseta repetida en la fuente: no se toca
-        self.assertEqual(out["7258"]["players"][0]["name"], "J1")        # sin alineación oficial de ese equipo: lo escrito a mano
+        self.assertEqual(names[0], "Juan Winter")          # dos Winter: la camiseta 77 desempata
+        self.assertEqual(names[1], "Jhon Méndez")          # la camiseta 11 de la fuente es de Bantes: no se mezcla
+        self.assertEqual(names[2], "Jefry Bantes")
+        self.assertEqual(len(names), len(set(names)))      # nadie repetido
+        self.assertEqual(out["7258"]["players"][0]["name"], "J1")   # sin alineación oficial de ese equipo: lo escrito a mano
 
     def test_real_file_guastatoya(self):
         e = [x for x in ml.load() if x["rival"] == "Guastatoya"][0]
