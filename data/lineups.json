@@ -530,7 +530,10 @@
       {
         "jersey": "11",
         "name": "Jhon Méndez",
-        "pos": "MCO"
+        "pos": "MCO",
+        "marks": [
+          "in"
+        ]
       },
       {
         "jersey": "20",
@@ -757,7 +760,7 @@
         "min": "60'",
         "side": "me",
         "kind": "sub",
-        "player": "Jefry Bantes",
+        "player": "Jhon Méndez",
         "player_out": "Rudy Muñoz"
       },
       {
@@ -765,14 +768,14 @@
         "side": "me",
         "kind": "sub",
         "player": "César Archila",
-        "player_out": "Erik López"
+        "player_out": "Pedro Altán"
       },
       {
         "min": "71'",
         "side": "me",
         "kind": "sub",
         "player": "Jefry Bantes",
-        "player_out": "Pedro Altán"
+        "player_out": "Erik López"
       },
       {
         "min": "77'",
