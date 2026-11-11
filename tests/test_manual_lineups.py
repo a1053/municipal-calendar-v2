@@ -36,6 +36,20 @@ class ManualLineupsTests(unittest.TestCase):
         self.assertEqual([p["place"] for p in mine["players"] if p["starter"]], list(range(1, 12)))
         self.assertTrue(mine["players"][-1]["played"])
 
+    def test_rival_lineup_is_optional(self):
+        entry = {**ENTRY, "rival_formation": "4-2-3-1", "rival_starters": [{"jersey": str(i), "name": f"R{i}"} for i in range(1, 12)]}
+        out = ml.apply([{"team_id": "9", "players": [1]}], entry, M, "7258")
+        by = {lu["team_id"]: lu for lu in out}
+        self.assertEqual(by["9"]["formation"], "4-2-3-1")
+        self.assertEqual(by["9"]["players"][0]["name"], "R1")
+        self.assertEqual(by["9"]["home_away"], "away")
+        self.assertEqual(by["7258"]["formation"], "4-3-1-2")
+
+    def test_real_file_has_xelaju(self):
+        e = [x for x in ml.load() if x["rival"] == "Xelajú"][0]
+        self.assertEqual(sum(int(n) for n in e["rival_formation"].split("-")), 10)
+        self.assertEqual(len(e["rival_bench"]), 9)
+
     def test_load_ignores_bad_files(self):
         self.assertEqual(ml.load(Path("/no/existe.json")), [])
 

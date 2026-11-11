@@ -246,3 +246,6 @@ no entra en las estadísticas de jugadores. Ya incluye el Municipal 3-1 Comunica
 
 Para los demás partidos, las marcas (goles, tarjetas amarillas y rojas, entró y salió) se calculan solas con los eventos
 del partido y se dibujan en la cancha y en las listas (`withMarks` en `site/formation.js`).
+
+Una entrada de `data/lineups.json` también puede traer la alineación del rival con las claves `rival_formation`,
+`rival_coach`, `rival_starters` y `rival_bench` (mismo formato). Ya incluye Xelajú 1-0 Municipal, jornada 16.
