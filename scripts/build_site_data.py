@@ -373,6 +373,8 @@ def build_details(matches: list[dict], standings: dict, out_dir: Path, now: date
             payload["of"] = extra
         if hand:  # solo para mostrar: las estadísticas de jugadores no usan estos nombres cortos
             payload["lineups"] = manual_lineups.apply(detail["lineups"], hand, m, cal.TEAM_ID)
+            if hand.get("events"):
+                payload["manual"] = {"source": hand.get("source", ""), "events": manual_lineups.to_events(hand, m, cal.TEAM_ID)}
         (out_dir / "match" / f"{m['id']}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     sources["details"] = "ok" if ok or not wanted else "error"

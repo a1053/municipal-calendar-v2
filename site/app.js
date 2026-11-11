@@ -898,6 +898,14 @@
 
   /** Eventos de OneFootball: solo suman. Si ESPN no trae cronología la reemplaza (con su fuente a la vista);
    *  si trae menos eventos, deja los de ESPN como están y agrega la lista completa aparte. */
+  // Cronología cargada a mano (con minuto y asistencia): manda sobre las demás fuentes.
+  function manualEventsBlock(m, manual) {
+    const items = ((manual && manual.events) || []).filter((e) => KIND[e.kind]);
+    if (!items.length) return null;
+    return section("Cronología", timelineList(m, items),
+      el("p", { class: "meta of-credit", text: `Cargada a mano${manual.source ? `. Fuente: ${manual.source}` : ""}.` }));
+  }
+
   function ofEventsBlock(m, of, espnEvents) {
     const items = ((of && of.events) || []).filter((e) => KIND[e.kind]);
     if (!items.length) return null;
@@ -1016,8 +1024,8 @@
     const prev = previaBlock(m, detail && detail.rival);
     const parts = detail ? [
       m.state === "pre" && detail.rival ? rivalBlock(detail.rival, !!prev) : null,
-      timeline(m, detail.events || []),
-      ofEventsBlock(m, detail.of, detail.events),
+      detail.manual ? manualEventsBlock(m, detail.manual) : timeline(m, detail.events || []),
+      detail.manual ? null : ofEventsBlock(m, detail.of, detail.events),
       commentaryBlock(m, detail.commentary),
       statsBlock(m, detail.stats || []),
       (detail.lineups || []).length ? lineupsBlock(m, detail.lineups, null, detail.events) : lineupsBlock(m, (detail.of && detail.of.lineups) || [], detail.of, (detail.of && detail.of.events) || []),
