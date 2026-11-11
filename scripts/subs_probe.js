@@ -5,5 +5,5 @@ const base = process.argv[2];
   console.log("partido", m.id, m.start, m.home.name, m.away.name);
   const d = await (await fetch(`${base}/data/match/${m.id}.json`)).json();
   const evs = [...(d.events || []).map((e) => ({ ...e, src: "ESPN" })), ...((d.of && d.of.events) || []).map((e) => ({ ...e, src: "OF" }))];
-  evs.filter((e) => e.kind === "sub").forEach((e) => console.log(e.src, e.min, e.team, "|", e.text || e.player));
+  evs.filter((e) => (e.kind === "goal" || e.kind === "own_goal")).forEach((e) => console.log(e.src, e.min, e.team, "|", [e.player, e.assist, e.kind].join(" | ")));
 })();
