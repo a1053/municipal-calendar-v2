@@ -61,6 +61,16 @@ class ManualLineupsTests(unittest.TestCase):
         self.assertEqual(ev[1]["team_id"], "9")
         self.assertEqual(ev[2]["text"], "Entra A, sale B")
 
+    def test_merge_prefers_onefootball_and_adds_assists(self):
+        manual = [{"min": "12'", "kind": "goal", "team_id": "7258", "player": "José Mena", "assist": "Rudy Muñoz"},
+                  {"min": "99'", "kind": "yellow", "team_id": "7258", "player": "Solo A Mano"}]
+        of = [{"min": "12'", "kind": "goal", "team_id": "7258", "player": "Jose Mena", "assist": ""},
+              {"min": "60'", "kind": "sub", "team_id": "7258", "player": "John Méndez", "player_out": "Rudy Muñoz"}]
+        out = ml.merge_events(of, manual)
+        self.assertEqual(out[0]["assist"], "Rudy Muñoz")
+        self.assertEqual(len(out), 2)                                   # lo que solo está a mano no entra
+        self.assertEqual(ml.merge_events([], manual), manual)           # sin OneFootball, vale lo manual
+
     def test_real_file_guastatoya(self):
         e = [x for x in ml.load() if x["rival"] == "Guastatoya"][0]
         self.assertEqual(sum(int(n) for n in e["formation"].split("-")), 10)
