@@ -6,6 +6,7 @@ fila de izquierda a derecha, de la defensa al ataque. Reemplaza la alineación d
 from __future__ import annotations
 
 import json
+import re
 from datetime import timedelta
 from pathlib import Path
 
@@ -60,4 +61,59 @@ def apply(lineups: list[dict], entry: dict, match: dict, team_id: str) -> list[d
     if len(entry.get("rival_starters") or []) == 11:      # la alineación del rival, si también se cargó
         out = [lu for lu in out if lu.get("team_id") != other["id"]] + [
             to_lineup(entry, other["id"], other["name"], "away" if ha == "home" else "home", "rival_")]
+    return out
+
+
+def to_events(entry: dict, match: dict, team_id: str) -> list[dict]:
+    """Cronología cargada a mano, con la forma que ya usa la página (min, kind, player, assist, team_id...)."""
+    mine = match["home"] if match["home"]["id"] == team_id else match["away"]
+    other = match["away"] if mine is match["home"] else match["home"]
+    out = []
+    for e in entry.get("events") or []:
+        team = mine if e.get("side", "me") == "me" else other
+        nums = [int(n) for n in re.findall(r"\d+", e.get("min", ""))]
+        sort = (nums[0] + nums[1] / 1000) if len(nums) > 1 else (nums[0] if nums else 0)
+        text = ""
+        if e.get("kind") == "sub":
+            text = f"Entra {e.get('player', '')}, sale {e.get('player_out', '')}"
+        elif e.get("text"):
+            text = e["text"]
+        out.append({"min": e.get("min", ""), "sort": float(sort), "kind": e.get("kind", ""), "team_id": team["id"], "team": team["name"],
+                    "player": e.get("player", ""), "player_out": e.get("player_out", ""), "assist": e.get("assist", ""),
+                    "penalty": bool(e.get("penalty")), "text": text})
+    out.sort(key=lambda r: r["sort"])
+    return out
+
+
+def _same_person(a: str, b: str) -> bool:
+    na, nb = sd._norm(a), sd._norm(b)
+    if not na or not nb:
+        return False
+    return na == nb or sd._close(na, nb) or (len(na.split()[-1]) > 3 and na.split()[-1] == nb.split()[-1])
+
+
+def _minute(e: dict) -> int | None:
+    nums = re.findall(r"\d+", e.get("min", "") or "")
+    return int(nums[0]) if nums else None
+
+
+def merge_events(of_events: list[dict], manual: list[dict]) -> list[dict]:
+    """Cronología de OneFootball (manda) con las asistencias y motivos cargados a mano.
+
+    Un evento a mano completa al de OneFootball si coinciden tipo, equipo, minuto y jugador. Los eventos que solo
+    están a mano no se agregan: OneFootball es la fuente. Sin eventos de OneFootball se usa lo cargado a mano.
+    """
+    if not of_events:
+        return list(manual)
+    out = []
+    for ev in of_events:
+        ev = dict(ev)
+        for m in manual:
+            if (m.get("kind") == ev.get("kind") and m.get("team_id") == ev.get("team_id") and _minute(m) == _minute(ev)
+                    and _same_person(m.get("player", ""), ev.get("player", ""))):
+                for key in ("assist", "text"):
+                    if m.get(key) and not ev.get(key):
+                        ev[key] = m[key]
+                break
+        out.append(ev)
     return out

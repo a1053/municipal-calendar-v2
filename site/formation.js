@@ -52,21 +52,26 @@
 
   /** Marcas de cada jugador (goles, tarjetas, cambios) sacadas de los eventos del partido. Alineaciones a mano ya las traen. */
   function withMarks(lineup, events) {
-    if (!lineup || lineup.manual || !(events || []).length) return lineup;
+    if (!lineup || !(events || []).length) return lineup;
     const evs = events.filter((e) => !e.team_id || !lineup.team_id || String(e.team_id) === String(lineup.team_id));
     const is = (a, b) => a && b && (norm(a).join(" ") === norm(b).join(" ") || same(a, b));
+    const EVENT_MARKS = ["goal", "yellow", "red", "in", "out"];
     const players = lineup.players.map((p) => {
-      const marks = [];
+      const found = [];
       evs.forEach((e) => {
-        if (e.kind === "goal" && is(p.name, e.player)) marks.push("goal");
-        else if (e.kind === "yellow" && is(p.name, e.player)) marks.push("yellow");
-        else if (e.kind === "red" && is(p.name, e.player)) marks.push("red");
+        if (e.kind === "goal" && is(p.name, e.player)) found.push("goal");
+        else if (e.kind === "yellow" && is(p.name, e.player)) found.push("yellow");
+        else if (e.kind === "red" && is(p.name, e.player)) found.push("red");
         else if (e.kind === "sub") {
-          if (is(p.name, e.player)) marks.push("in");
-          if (is(p.name, e.player_out)) marks.push("out");
+          if (is(p.name, e.player)) found.push("in");
+          if (is(p.name, e.player_out)) found.push("out");
         }
       });
-      return marks.length ? { ...p, marks } : p;
+      // Por cada tipo, los eventos mandan; si no encontraron ese tipo para el jugador, queda lo cargado a mano (y el capitán).
+      const hand = p.marks || [];
+      const marks = hand.filter((k) => !EVENT_MARKS.includes(k) || !found.includes(k));
+      EVENT_MARKS.forEach((k) => found.forEach((f) => { if (f === k) marks.push(k); }));
+      return marks.length || p.marks ? { ...p, marks } : p;
     });
     return { ...lineup, players };
   }

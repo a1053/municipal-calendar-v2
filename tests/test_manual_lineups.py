@@ -50,6 +50,33 @@ class ManualLineupsTests(unittest.TestCase):
         self.assertEqual(sum(int(n) for n in e["rival_formation"].split("-")), 10)
         self.assertEqual(len(e["rival_bench"]), 9)
 
+    def test_events_for_the_timeline(self):
+        entry = {**ENTRY, "events": [
+            {"min": "34'", "side": "rival", "kind": "goal", "player": "Yori", "assist": "Lemus"},
+            {"min": "12'", "side": "me", "kind": "goal", "player": "Mena", "assist": "Muñoz"},
+            {"min": "46'", "side": "me", "kind": "sub", "player": "A", "player_out": "B"}]}
+        ev = ml.to_events(entry, M, "7258")
+        self.assertEqual([e["min"] for e in ev], ["12'", "34'", "46'"])
+        self.assertEqual((ev[0]["team_id"], ev[0]["assist"]), ("7258", "Muñoz"))
+        self.assertEqual(ev[1]["team_id"], "9")
+        self.assertEqual(ev[2]["text"], "Entra A, sale B")
+
+    def test_merge_prefers_onefootball_and_adds_assists(self):
+        manual = [{"min": "12'", "kind": "goal", "team_id": "7258", "player": "José Mena", "assist": "Rudy Muñoz"},
+                  {"min": "99'", "kind": "yellow", "team_id": "7258", "player": "Solo A Mano"}]
+        of = [{"min": "12'", "kind": "goal", "team_id": "7258", "player": "Jose Mena", "assist": ""},
+              {"min": "60'", "kind": "sub", "team_id": "7258", "player": "John Méndez", "player_out": "Rudy Muñoz"}]
+        out = ml.merge_events(of, manual)
+        self.assertEqual(out[0]["assist"], "Rudy Muñoz")
+        self.assertEqual(len(out), 2)                                   # lo que solo está a mano no entra
+        self.assertEqual(ml.merge_events([], manual), manual)           # sin OneFootball, vale lo manual
+
+    def test_real_file_guastatoya(self):
+        e = [x for x in ml.load() if x["rival"] == "Guastatoya"][0]
+        self.assertEqual(sum(int(n) for n in e["formation"].split("-")), 10)
+        self.assertEqual(sum(int(n) for n in e["rival_formation"].split("-")), 10)
+        self.assertEqual(sum(1 for x in e["events"] if x["kind"] == "goal"), 2)
+
     def test_load_ignores_bad_files(self):
         self.assertEqual(ml.load(Path("/no/existe.json")), [])
 

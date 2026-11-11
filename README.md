@@ -249,3 +249,11 @@ del partido y se dibujan en la cancha y en las listas (`withMarks` en `site/form
 
 Una entrada de `data/lineups.json` también puede traer la alineación del rival con las claves `rival_formation`,
 `rival_coach`, `rival_starters` y `rival_bench` (mismo formato). Ya incluye Xelajú 1-0 Municipal, jornada 16.
+
+Las entradas de `data/lineups.json` también pueden traer `events` (cronología con `min`, `side` "me" o "rival", `kind`
+goal, yellow, red o sub, `player`, `player_out`, `assist` y `text`). Si existen, mandan sobre la cronología de ESPN y
+OneFootball y muestran asistencias. Ya incluye Municipal 1-1 Guastatoya, jornada 15.
+
+Cuando un partido tiene alineación manual y también eventos de OneFootball, la cronología y las marcas de la cancha salen
+de OneFootball. De lo cargado a mano se toman las asistencias, los motivos de las tarjetas, el capitán y las marcas que
+OneFootball no trae. Si OneFootball no tiene eventos, se usa la cronología cargada a mano.

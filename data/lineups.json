@@ -416,5 +416,409 @@
         ]
       }
     ]
+  },
+  {
+    "date": "2026-10-18",
+    "rival": "Guastatoya",
+    "competition": "Liga Nacional Apertura, jornada 15 (Municipal 1-1 Guastatoya)",
+    "source": "Transfermarkt, copiado a mano",
+    "formation": "4-3-1-2",
+    "coach": "Mario Acevedo",
+    "starters": [
+      {
+        "jersey": "1",
+        "name": "Braulio Linares"
+      },
+      {
+        "jersey": "52",
+        "name": "Aubrey David",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "3",
+        "name": "José Mena",
+        "marks": [
+          "captain",
+          "goal"
+        ]
+      },
+      {
+        "jersey": "4",
+        "name": "Samayoa"
+      },
+      {
+        "jersey": "16",
+        "name": "Morales"
+      },
+      {
+        "jersey": "7",
+        "name": "Rudy Muñoz",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "43",
+        "name": "Yunior Pérez",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "14",
+        "name": "Jonathan Franco",
+        "marks": [
+          "yellow",
+          "out"
+        ]
+      },
+      {
+        "jersey": "10",
+        "name": "Pedro Altán",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "32",
+        "name": "Erik López",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "9",
+        "name": "Martínez"
+      }
+    ],
+    "bench": [
+      {
+        "jersey": "12",
+        "name": "Kenderson Navarro",
+        "pos": "POR"
+      },
+      {
+        "jersey": "13",
+        "name": "Carlos Estrada",
+        "pos": "CEN"
+      },
+      {
+        "jersey": "31",
+        "name": "César Calderón",
+        "pos": "LD"
+      },
+      {
+        "jersey": "8",
+        "name": "Rodrigo Saravia",
+        "pos": "PIV"
+      },
+      {
+        "jersey": "26",
+        "name": "Rudy Barrientos",
+        "pos": "MC"
+      },
+      {
+        "jersey": "19",
+        "name": "Cristian Hernández",
+        "pos": "MCO",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "11",
+        "name": "Jhon Méndez",
+        "pos": "MCO",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "20",
+        "name": "César Archila",
+        "pos": "ED",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "22",
+        "name": "Jefry Bantes",
+        "pos": "DEL",
+        "marks": [
+          "in",
+          "yellow"
+        ]
+      }
+    ],
+    "rival_formation": "5-4-1",
+    "rival_coach": "Martín García",
+    "rival_starters": [
+      {
+        "jersey": "1",
+        "name": "Escobar"
+      },
+      {
+        "jersey": "32",
+        "name": "Bryan Lemus"
+      },
+      {
+        "jersey": "7",
+        "name": "Morales"
+      },
+      {
+        "jersey": "44",
+        "name": "Emanuel Yori",
+        "marks": [
+          "captain",
+          "goal",
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "88",
+        "name": "Carlos Alvarado",
+        "marks": [
+          "yellow",
+          "out"
+        ]
+      },
+      {
+        "jersey": "33",
+        "name": "Contreras"
+      },
+      {
+        "jersey": "17",
+        "name": "José Almanza",
+        "marks": [
+          "yellow"
+        ]
+      },
+      {
+        "jersey": "15",
+        "name": "Ariel Lon",
+        "marks": [
+          "yellow",
+          "out"
+        ]
+      },
+      {
+        "jersey": "10",
+        "name": "Marlon Sequén",
+        "marks": [
+          "out"
+        ]
+      },
+      {
+        "jersey": "14",
+        "name": "Estrada"
+      },
+      {
+        "jersey": "9",
+        "name": "Víctor Avalos",
+        "marks": [
+          "out"
+        ]
+      }
+    ],
+    "rival_bench": [
+      {
+        "jersey": "12",
+        "name": "Brayan Hernández",
+        "pos": "POR"
+      },
+      {
+        "jersey": "30",
+        "name": "Samuel Garrido",
+        "pos": "CEN"
+      },
+      {
+        "jersey": "23",
+        "name": "Víctor Armas",
+        "pos": "LI"
+      },
+      {
+        "jersey": "22",
+        "name": "Wilson Pineda",
+        "pos": "LD",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "4",
+        "name": "Brayan Morales",
+        "pos": "PIV",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "-",
+        "name": "Jeferson Macal",
+        "pos": "MC"
+      },
+      {
+        "jersey": "8",
+        "name": "Yordi Aguilar",
+        "pos": "MCO"
+      },
+      {
+        "jersey": "35",
+        "name": "Edy Palencia",
+        "pos": "ED",
+        "marks": [
+          "in"
+        ]
+      },
+      {
+        "jersey": "13",
+        "name": "Ángel Tejeda",
+        "pos": "DEL",
+        "marks": [
+          "in",
+          "yellow"
+        ]
+      }
+    ],
+    "events": [
+      {
+        "min": "1'",
+        "side": "me",
+        "kind": "yellow",
+        "player": "Aubrey David",
+        "text": "Comportamiento antideportivo"
+      },
+      {
+        "min": "12'",
+        "side": "me",
+        "kind": "goal",
+        "player": "José Mena",
+        "assist": "Rudy Muñoz",
+        "text": "Remate de cabeza"
+      },
+      {
+        "min": "18'",
+        "side": "rival",
+        "kind": "yellow",
+        "player": "Carlos Alvarado",
+        "text": "Derribar a un adversario en una ocasión"
+      },
+      {
+        "min": "34'",
+        "side": "rival",
+        "kind": "goal",
+        "player": "Emanuel Yori",
+        "assist": "Bryan Lemus",
+        "text": "Remate de cabeza"
+      },
+      {
+        "min": "37'",
+        "side": "rival",
+        "kind": "yellow",
+        "player": "Emanuel Yori",
+        "text": "Derribar a un adversario en una ocasión"
+      },
+      {
+        "min": "42'",
+        "side": "me",
+        "kind": "yellow",
+        "player": "Jonathan Franco",
+        "text": "Encararse con adversarios"
+      },
+      {
+        "min": "42'",
+        "side": "rival",
+        "kind": "yellow",
+        "player": "José Almanza",
+        "text": "Encararse con adversarios"
+      },
+      {
+        "min": "46'",
+        "side": "me",
+        "kind": "sub",
+        "player": "Cristian Hernández",
+        "player_out": "Jonathan Franco"
+      },
+      {
+        "min": "46'",
+        "side": "rival",
+        "kind": "sub",
+        "player": "Wilson Pineda",
+        "player_out": "Carlos Alvarado"
+      },
+      {
+        "min": "56'",
+        "side": "rival",
+        "kind": "yellow",
+        "player": "Ariel Lon",
+        "text": "Comportamiento antideportivo"
+      },
+      {
+        "min": "60'",
+        "side": "me",
+        "kind": "sub",
+        "player": "Jhon Méndez",
+        "player_out": "Rudy Muñoz"
+      },
+      {
+        "min": "71'",
+        "side": "me",
+        "kind": "sub",
+        "player": "César Archila",
+        "player_out": "Pedro Altán"
+      },
+      {
+        "min": "71'",
+        "side": "me",
+        "kind": "sub",
+        "player": "Jefry Bantes",
+        "player_out": "Erik López"
+      },
+      {
+        "min": "77'",
+        "side": "rival",
+        "kind": "sub",
+        "player": "Ángel Tejeda",
+        "player_out": "Víctor Avalos"
+      },
+      {
+        "min": "80'",
+        "side": "me",
+        "kind": "yellow",
+        "player": "Yunior Pérez",
+        "text": "Derribar a un adversario en una ocasión"
+      },
+      {
+        "min": "80'",
+        "side": "rival",
+        "kind": "yellow",
+        "player": "Ángel Tejeda",
+        "text": "Comportamiento antideportivo"
+      },
+      {
+        "min": "84'",
+        "side": "rival",
+        "kind": "sub",
+        "player": "Brayan Morales",
+        "player_out": "Ariel Lon"
+      },
+      {
+        "min": "84'",
+        "side": "rival",
+        "kind": "sub",
+        "player": "Edy Palencia",
+        "player_out": "Marlon Sequén"
+      },
+      {
+        "min": "88'",
+        "side": "me",
+        "kind": "yellow",
+        "player": "Jefry Bantes",
+        "text": "Derribar a un adversario en una ocasión"
+      }
+    ]
   }
 ]

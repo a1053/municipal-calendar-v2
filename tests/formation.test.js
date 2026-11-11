@@ -29,7 +29,6 @@ assert.deepStrictEqual(mk2[0].marks, ["goal", "goal"]);
 assert.deepStrictEqual(mk2[1].marks, ["yellow", "out"]);
 assert.deepStrictEqual(mk2[2].marks, ["in"]);
 assert.strictEqual(mk2[3].marks, undefined);                      // la amarilla era del otro equipo
-assert.strictEqual(F.withMarks({ ...lu, manual: true }, evs).players[0].marks, undefined);
 assert.strictEqual(F.withMarks(lu, []), lu);
 console.log("formation marks: OK");
 
@@ -37,3 +36,14 @@ assert.ok(F.same("Aubrey Devid", "Aubrey David"));                 // error de t
 assert.ok(!F.same("Rudy Muñoz", "Rudy Nuñez"));                    // apellidos distintos
 assert.ok(!F.same("Luis Gómez", "Carlos Gómez"));
 console.log("formation typos: OK");
+
+// alineación manual: los eventos mandan por tipo, y lo escrito a mano queda de respaldo
+const man = { team_id: "7258", manual: true, players: [
+  { name: "Mena", starter: true, marks: ["captain", "yellow"] }, { name: "Víctor Avalos", starter: true, marks: ["out"] }, { name: "Jhon Méndez", starter: false, marks: ["in"] }] };
+const out2 = F.withMarks(man, [{ kind: "sub", player: "Jhon Méndez", player_out: "Rudy Muñoz", team_id: "7258" }]).players;
+assert.deepStrictEqual(out2[0].marks, ["captain", "yellow"]);       // sin evento de ese tipo, se queda lo manual
+assert.deepStrictEqual(out2[1].marks, ["out"]);
+assert.deepStrictEqual(out2[2].marks, ["in"]);
+const out3 = F.withMarks({ ...man, players: [{ name: "Jhon Méndez", marks: ["in", "yellow"] }] }, [{ kind: "yellow", player: "Jhon Méndez", team_id: "7258" }]).players;
+assert.deepStrictEqual(out3[0].marks, ["in", "yellow"]);
+console.log("formation manual marks: OK");
